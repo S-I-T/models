@@ -67,7 +67,7 @@ def main(_):
   elif FLAGS.dataset_name == 'mnist':
     download_and_convert_mnist.run(FLAGS.dataset_dir)
   elif FLAGS.dataset_name == 'trucks':
-    download_and_convert_mnist.run(FLAGS.dataset_dir)
+    download_and_convert_trucks.run(FLAGS.dataset_dir)
   else:
     raise ValueError(
         'dataset_name [%s] was not recognized.' % FLAGS.dataset_name)
