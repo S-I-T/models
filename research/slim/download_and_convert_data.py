@@ -39,6 +39,7 @@ import tensorflow as tf
 from datasets import download_and_convert_cifar10
 from datasets import download_and_convert_flowers
 from datasets import download_and_convert_mnist
+from datasets import download_and_convert_trucks
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -64,6 +65,8 @@ def main(_):
   elif FLAGS.dataset_name == 'flowers':
     download_and_convert_flowers.run(FLAGS.dataset_dir)
   elif FLAGS.dataset_name == 'mnist':
+    download_and_convert_mnist.run(FLAGS.dataset_dir)
+  elif FLAGS.dataset_name == 'trucks':
     download_and_convert_mnist.run(FLAGS.dataset_dir)
   else:
     raise ValueError(
