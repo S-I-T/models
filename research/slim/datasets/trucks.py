@@ -59,7 +59,7 @@ def _get_filenames_and_classes_count(dataset_dir):
 			directories.append(path)
 			class_count += 1
 	
-	images_count = =0
+	images_count = 0
 	for directory in directories:
 		for filename in os.listdir(directory):
 			images_count += 1
