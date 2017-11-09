@@ -101,7 +101,7 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
 	
 	if not file_pattern:
 		file_pattern = _FILE_PATTERN
-	file_pattern = os.path.join(dataset_dir + '/tfrecord', file_pattern % split_name)
+	file_pattern = os.path.join(dataset_dir + '/tfrecords', file_pattern % split_name)
 	
 	# Allowing None in the signature so that dataset_factory can use the default.
 	if reader is None:
