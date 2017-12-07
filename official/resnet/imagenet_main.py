@@ -73,6 +73,7 @@ _NUM_IMAGES = {
     'validation': 50000,
 }
 
+_FILE_SHUFFLE_BUFFER = 1024
 _SHUFFLE_BUFFER = 1500
 
 
@@ -81,15 +82,15 @@ def filenames(is_training, data_dir):
   if is_training:
     return [
         os.path.join(data_dir, 'train-%05d-of-01024' % i)
-        for i in range(0, 1024)]
+        for i in range(1024)]
   else:
     return [
         os.path.join(data_dir, 'validation-%05d-of-00128' % i)
-        for i in range(0, 128)]
+        for i in range(128)]
 
 
-def dataset_parser(value, is_training):
-  """Parse an Imagenet record from value."""
+def record_parser(value, is_training):
+  """Parse an ImageNet record from `value`."""
   keys_to_features = {
       'image/encoded':
           tf.FixedLenFeature((), tf.string, default_value=''),
@@ -133,26 +134,27 @@ def dataset_parser(value, is_training):
 
 def input_fn(is_training, data_dir, batch_size, num_epochs=1):
   """Input function which provides batches for train or eval."""
-  dataset = tf.contrib.data.Dataset.from_tensor_slices(
-      filenames(is_training, data_dir))
+  dataset = tf.data.Dataset.from_tensor_slices(filenames(is_training, data_dir))
 
   if is_training:
-    dataset = dataset.shuffle(buffer_size=1024)
-  dataset = dataset.flat_map(tf.contrib.data.TFRecordDataset)
+    dataset = dataset.shuffle(buffer_size=_FILE_SHUFFLE_BUFFER)
 
-  if is_training:
-    dataset = dataset.repeat(num_epochs)
-
-  dataset = dataset.map(lambda value: dataset_parser(value, is_training),
-                        num_threads=5,
-                        output_buffer_size=batch_size)
+  dataset = dataset.flat_map(tf.data.TFRecordDataset)
+  dataset = dataset.map(lambda value: record_parser(value, is_training),
+                        num_parallel_calls=5)
+  dataset = dataset.prefetch(batch_size)
 
   if is_training:
     # When choosing shuffle buffer sizes, larger sizes result in better
     # randomness, while smaller sizes have better performance.
     dataset = dataset.shuffle(buffer_size=_SHUFFLE_BUFFER)
 
-  iterator = dataset.batch(batch_size).make_one_shot_iterator()
+  # We call repeat after shuffling, rather than before, to prevent separate
+  # epochs from blending together.
+  dataset = dataset.repeat(num_epochs)
+  dataset = dataset.batch(batch_size)
+
+  iterator = dataset.make_one_shot_iterator()
   images, labels = iterator.get_next()
   return images, labels
 
@@ -182,14 +184,15 @@ def resnet_model_fn(features, labels, mode, params):
   tf.identity(cross_entropy, name='cross_entropy')
   tf.summary.scalar('cross_entropy', cross_entropy)
 
-  # Add weight decay to the loss. We perform weight decay on all trainable
-  # variables, which includes batch norm beta and gamma variables.
+  # Add weight decay to the loss. We exclude the batch norm variables because
+  # doing so leads to a small improvement in accuracy.
   loss = cross_entropy + _WEIGHT_DECAY * tf.add_n(
-      [tf.nn.l2_loss(v) for v in tf.trainable_variables()])
+      [tf.nn.l2_loss(v) for v in tf.trainable_variables()
+       if 'batch_normalization' not in v.name])
 
   if mode == tf.estimator.ModeKeys.TRAIN:
-    # Scale the learning rate linearly with the batch size. When the batch size is
-    # 256, the learning rate should be 0.1.
+    # Scale the learning rate linearly with the batch size. When the batch size
+    # is 256, the learning rate should be 0.1.
     initial_learning_rate = 0.1 * params['batch_size'] / 256
     batches_per_epoch = _NUM_IMAGES['train'] / params['batch_size']
     global_step = tf.train.get_or_create_global_step()
