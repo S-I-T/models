@@ -81,3 +81,24 @@ python eval_image_classifier.py \
   --dataset_split_name=validation \
   --dataset_dir=${DATASET_DIR} \
   --model_name=inception_v3
+
+#Para exportar el grafo 
+python export_inference_graph.py \
+  --alsologtostderr \
+  --model_name=inception_v3 \
+  --dataset_name=trucks \
+  --dataset_dir=${DATASET_DIR} \
+  --output_file=${TRAIN_DIR}/inception_v3_inf_graph.pb
+  
+#Para congelar un grafo con los parametros entrenados
+TENSORFLOWDIR=/tensorflow
+BAZEL=bazel
+
+cd $TENSORFLOWDIR
+#$BAZEL build tensorflow/python/tools:freeze_graph
+
+bazel-bin/tensorflow/python/tools/freeze_graph \
+  --input_graph=${TRAIN_DIR}/inception_v3_inf_graph.pb \
+  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-500 \
+  --input_binary=true --output_graph=${TRAIN_DIR}/all/frozen_inception_v3.pb \
+  --output_node_names=InceptionV3/Predictions/Reshape_1
