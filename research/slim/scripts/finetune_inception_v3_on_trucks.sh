@@ -1,12 +1,6 @@
-## Where the pre-trained InceptionV3 checkpoint is saved to.
-#PRETRAINED_CHECKPOINT_DIR=/root/models/tf-slim/public
-#
-## Where the training (fine-tuned) checkpoint and logs will be saved to.
-#TRAIN_DIR=/root/models/tf-slim/train/Flowers/inception_v3
-#
-## Where the dataset is saved to.
-#DATASET_DIR=/root/databases/Flowers/tfrecords
-
+#Limpiar modelos previos
+#rm -rf /root/databases/Trucks/tfrecords
+#rm -rf /root/models/tf-slim/train/Trucks/inception_v3 
 
 
 # Where the pre-trained InceptionV3 checkpoint is saved to.
@@ -38,8 +32,8 @@ python train_image_classifier.py \
   --checkpoint_path=${PRETRAINED_CHECKPOINT_DIR}/inception_v3.ckpt \
   --checkpoint_exclude_scopes=InceptionV3/Logits,InceptionV3/AuxLogits \
   --trainable_scopes=InceptionV3/Logits,InceptionV3/AuxLogits \
-  --max_number_of_steps=1000 \
-  --batch_size=32 \
+  --max_number_of_steps=2000 \
+  --batch_size=64 \
   --learning_rate=0.01 \
   --learning_rate_decay_type=fixed \
   --save_interval_secs=60 \
@@ -68,7 +62,7 @@ python train_image_classifier.py \
   --model_name=inception_v3 \
   --checkpoint_path=${TRAIN_DIR} \
   --max_number_of_steps=500 \
-  --batch_size=32 \
+  --batch_size=64 \
   --learning_rate=0.0001 \
   --learning_rate_decay_type=fixed \
   --save_interval_secs=60 \
