@@ -113,10 +113,10 @@ cd $TENSORFLOWDIR
 #$BAZEL build tensorflow/examples/label_image:label_image
 
 bazel-bin/tensorflow/examples/label_image/label_image \
-  --image=${DATASET_DIR}/images/concrete-mixer/00000000f5967924_150505_093504_-1.jpg_crop0.jpg \
   --input_layer=input \
   --output_layer=InceptionV3/Predictions/Reshape_1 \
   --graph=${TRAIN_DIR}/all/frozen_inception_v3.pb \
   --labels=${DATASET_DIR}/tfrecords/labels.txt \
   --input_mean=0 \
-  --input_std=255
+  --input_std=255 \
+  --image=${DATASET_DIR}/images/concrete-mixer/00000000f5967924_150505_093504_-1.jpg_crop0.jpg
