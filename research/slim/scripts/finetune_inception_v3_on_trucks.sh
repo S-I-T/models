@@ -184,3 +184,7 @@ wget ${TEST_IMAGE} -O image.jpg
 python -c 'import base64, sys, json; img = base64.b64encode(open(sys.argv[1], "rb").read()); print json.dumps({"key":"0", "image_bytes": {"b64": img}})' image.jpg &> request.json
 gcloud ml-engine predict --model ${MODEL_NAME} --json-instances request.json
 rm -f image.jpg request.json
+
+
+#POST https://ml.googleapis.com/v1/projects/my-project/models/my-model/versions/my-version:predict
+#POST https://ml.googleapis.com/v1/projects/visualprogress2/models/Truck_clasificator_inet/versions/inceptionv3_v0:predict
