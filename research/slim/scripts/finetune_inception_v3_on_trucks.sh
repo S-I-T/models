@@ -15,7 +15,10 @@ DATASET_DIR=/root/databases/Trucks
 # Otras definiciones
 TENSORFLOWDIR=/tensorflow
 BAZEL=bazel
+SLIM_DIR=/root/src/models/research/slim
 
+
+cd ${SLIM_DIR}
 
 # Download the dataset
 python download_and_convert_data.py \
@@ -120,3 +123,64 @@ bazel-bin/tensorflow/examples/label_image/label_image \
   --input_mean=0 \
   --input_std=255 \
   --image=${DATASET_DIR}/images/concrete-mixer/00000000f5967924_150505_093504_-1.jpg_crop0.jpg
+  
+  
+#Para subir y servir el grafo en Google ML Engine__________________________________
+#Ejemplos sacados de https://github.com/GoogleCloudPlatform/cloudml-samples/flowers
+
+cd ${SLIM_DIR}
+
+#Para exportar el grafo 
+python export_inference_graph_serve.py \
+  --alsologtostderr \
+  --model_name=inception_v3 \
+  --dataset_name=trucks \
+  --dataset_dir=${DATASET_DIR} \
+  --output_file=${TRAIN_DIR}/inception_v3_inf_graph_serve.pb
+
+  
+#Para revisar el grafo creado, y ver los nombres de los nodos de salida
+cd $TENSORFLOWDIR
+bazel-bin/tensorflow/tools/graph_transforms/summarize_graph \
+  --in_graph=${TRAIN_DIR}/inception_v3_inf_graph_serve.pb
+
+  
+#Para congelar un grafo con los parametros entrenados
+cd $TENSORFLOWDIR
+bazel-bin/tensorflow/python/tools/freeze_graph \
+  --input_graph=${TRAIN_DIR}/inception_v3_inf_graph_serve.pb \
+  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-1000 \
+  --input_binary=true --output_graph=${TRAIN_DIR}/all/frozen_inception_v3_serve.pb \
+  --output_node_names=InceptionV3/Predictions/Reshape_1
+
+  
+#Para transformar ese grafo a formato saved_model
+cd ${SLIM_DIR}
+python convert_frozen_graph_to_saved_model.py \
+  --input_graph=${TRAIN_DIR}/all/frozen_inception_v3_serve.pb \
+  --input_node_name=input_jpeg \
+  --output_node_name=InceptionV3/Predictions/Reshape_1
+  --output_dir=${TRAIN_DIR}/all/saved_model
+
+
+#Para subir el modelo a Google ML Engine, se debe subir la carpeta saved_model 
+#a un bucket, el cual se define aca como GCS_BUCKET
+#sudo ./sit-machine-learning_upload.sh
+MODEL_NAME=Trucks_classificator
+REGION=us-central1
+VERSION_NAME=inceptionv3_v0
+VERSION_DESCRIPTION="Camiones descargados de internet. Tipos de camiones: 0:concrete-mixer, 1:crane-truck, 2:dump-truck, 3:other-truck, 4:water-tank-truck"
+GCS_BUCKET=gs://sit-machine-learning/data/models/detector_classificator/tf-slim/train/Trucks/inception_v3/all/saved_model
+
+gcloud ml-engine models create "$MODEL_NAME" --regions "$REGION"
+gcloud ml-engine versions create "$VERSION_NAME" \
+  --model "$MODEL_NAME" \
+  --origin "${GCS_BUCKET}" \
+  --runtime-version=1.2
+
+#Probamos el modelo subido con una imagen
+TEST_IMAGE=https://i.pinimg.com/736x/f4/2d/7e/f42d7eb4f4aa9318bfbeab73285ed2fc--used-trucks-box-sets.jpg
+wget ${TEST_IMAGE} -O image.jpg
+python -c 'import base64, sys, json; img = base64.b64encode(open(sys.argv[1], "rb").read()); print json.dumps({"key":"0", "image_bytes": {"b64": img}})' image.jpg &> request.json
+gcloud ml-engine predict --model ${MODEL_NAME} --json-instances request.json
+rm -f image.jpg request.json

@@ -1,18 +1,6 @@
-# Copyright 2017 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Basado en https://github.com/GoogleCloudPlatform/cloudml-samples/tree/master/flowers
 # ==============================================================================
-r"""Saves out a GraphDef containing the architecture of the model.
+"""Saves out a GraphDef containing the architecture of the model.
 
 To use it, run something like this, with a model name defined by slim:
 
@@ -103,6 +91,7 @@ def main(_):
   if not FLAGS.output_file:
     raise ValueError('You must supply the path to save to with --output_file')
   tf.logging.set_verbosity(tf.logging.INFO)
+  
   with tf.Graph().as_default() as graph:
     dataset = dataset_factory.get_dataset(FLAGS.dataset_name, 'train',
                                           FLAGS.dataset_dir)
@@ -111,30 +100,45 @@ def main(_):
         num_classes=(dataset.num_classes - FLAGS.labels_offset),
         is_training=FLAGS.is_training)
     image_size = FLAGS.image_size or network_fn.default_image_size
-    '''placeholder = tf.placeholder(name='input', dtype=tf.float32,
-                                 shape=[FLAGS.batch_size, image_size,
-                                        image_size, 3])'''
 										
     IMAGE_WIDTH = image_size
     IMAGE_HEIGHT = image_size
     IMAGE_CHANNELS = 3
-    input_jpeg = tf.placeholder(name='input_jpeg', dtype=tf.string, shape=FLAGS.batch_size)
-    image = tf.image.decode_jpeg(input_jpeg, channels=IMAGE_CHANNELS)
+    image_str_tensor = tf.placeholder(name='input_jpeg', dtype=tf.string, shape=[FLAGS.batch_size])
+	
+	#TODO: Esta solo para inferencia, no para entrenamiento
 
-    # Note resize expects a batch_size, but we are feeding a single image.
-    # So we have to expand then squeeze.  Resize returns float32 in the
-    # range [0, uint8_max]
-    image = tf.expand_dims(image, 0)
-
-    # convert_image_dtype also scales [0, uint8_max] -> [0 ,1).
-    image = tf.image.convert_image_dtype(image, dtype=tf.float32)
-    image = tf.image.resize_bilinear( image, [IMAGE_HEIGHT, IMAGE_WIDTH], align_corners=False)
-
-    # Then rescale range to [-1, 1) for Inception.
-    image = tf.subtract(image, 0.5)
-    inception_input = tf.multiply(image, 2.0)
+    # The CloudML Prediction API always "feeds" the Tensorflow graph with
+    # dynamic batch sizes e.g. (?,).  decode_jpeg only processes scalar
+    # strings because it cannot guarantee a batch of images would have
+    # the same output size.  We use tf.map_fn to give decode_jpeg a scalar
+    # string from dynamic batches.
+    def decode_and_resize(image_str_tensor):
+        """Decodes jpeg string, resizes it and returns a uint8 tensor."""
+        image = tf.image.decode_jpeg(image_str_tensor, channels=IMAGE_CHANNELS)
+        # Note resize expects a batch_size, but tf_map supresses that index,
+        # thus we have to expand then squeeze.  Resize returns float32 in the
+        # range [0, uint8_max]
+        image = tf.expand_dims(image, 0)
+        image = tf.image.resize_bilinear(image, [IMAGE_HEIGHT, IMAGE_WIDTH], align_corners=False)
+        image = tf.squeeze(image, squeeze_dims=[0])
+        image = tf.cast(image, dtype=tf.uint8)
+        return image
     
-    network_fn(inception_input)
+    image = tf.map_fn( decode_and_resize, image_str_tensor, back_prop=False, dtype=tf.uint8)
+	
+	# TODO: Esta parte es particular para inception_v3, dependiendo del modelo deberia cambiar
+    # convert_image_dtype, also scales [0, uint8_max] -> [0 ,1).
+    image = tf.image.convert_image_dtype(image, dtype=tf.float32)
+
+    # Then shift images to [-1, 1) for Inception.
+    image = tf.subtract(image, 0.5)
+    image = tf.multiply(image, 2.0)
+    
+	# Aplicamos la red a la imagen de entrada
+    network_fn(image)
+	
+	# Guardamos la definicion del grafo
     graph_def = graph.as_graph_def()
     with gfile.GFile(FLAGS.output_file, 'wb') as f:
       f.write(graph_def.SerializeToString())
@@ -143,25 +147,3 @@ def main(_):
 if __name__ == '__main__':
   tf.app.run()
 
-'''
-  def build_prediction_graph(self):
-    """Builds prediction graph and registers appropriate endpoints."""
-
-    tensors = self.build_graph(None, 1, GraphMod.PREDICT)
-
-    keys_placeholder = tf.placeholder(tf.string, shape=[None])
-    inputs = {
-        'key': keys_placeholder,
-        'image_bytes': tensors.input_jpeg
-    }
-
-    # To extract the id, we need to add the identity function.
-    keys = tf.identity(keys_placeholder)
-    outputs = {
-        'key': keys,
-        'prediction': tensors.predictions[0],
-        'scores': tensors.predictions[1]
-    }
-
-    return inputs, outputs
-'''
