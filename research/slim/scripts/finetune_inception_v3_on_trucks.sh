@@ -176,7 +176,7 @@ gcloud ml-engine models create "$MODEL_NAME" --regions "$REGION"
 gcloud ml-engine versions create "$VERSION_NAME" \
   --model "$MODEL_NAME" \
   --origin "${GCS_BUCKET}" \
-  --runtime-version=1.2
+  --runtime-version=1.4
 
 #Probamos el modelo subido con una imagen
 TEST_IMAGE=https://i.pinimg.com/736x/f4/2d/7e/f42d7eb4f4aa9318bfbeab73285ed2fc--used-trucks-box-sets.jpg

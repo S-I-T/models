@@ -81,6 +81,7 @@ def make_request_json(input_images, output_json, do_resize):
 
       image.save(resized_handle, format='JPEG')
       encoded_contents = base64.b64encode(resized_handle.getvalue())
+	  resized_handle.close()
 
       # key can be any UTF-8 string, since it goes in a HTTP request.
       row = json.dumps({'key': image_handle.name,
