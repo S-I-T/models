@@ -173,6 +173,7 @@ VERSION_DESCRIPTION="Camiones descargados de internet. Tipos de camiones: 0:conc
 GCS_BUCKET=gs://sit-machine-learning/data/models/detector_classificator/tf-slim/train/Trucks/inception_v3/all/saved_model
 
 gcloud ml-engine models create "$MODEL_NAME" --regions "$REGION"
+# --enable-logging --> log a stackdrive
 gcloud ml-engine versions create "$VERSION_NAME" \
   --model "$MODEL_NAME" \
   --origin "${GCS_BUCKET}" \

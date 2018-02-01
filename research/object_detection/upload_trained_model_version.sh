@@ -73,6 +73,7 @@ TEST_IMAGE=/root/src/models/research/object_detection/test_images/image1.jpg
 
 python -c 'import base64, sys, json; img = base64.b64encode(open(sys.argv[1], "rb").read()); print json.dumps({"inputs": {"b64": img}})' ${TEST_IMAGE} &> inputs.json
 time gcloud ml-engine local predict --model-dir ${MODEL_DIR}/saved_model_serve --json-instances=inputs.json
+#--format=json
 rm inputs.json
 
 #Servir el modelo en la nube
