@@ -25,7 +25,7 @@ def main(_):
 	input_graph = FLAGS.input_graph
 	input_node_name = FLAGS.input_node_name + ":0"
 	output_node_name = FLAGS.output_node_name + ":0"
-	output_dir = FLAGS.dataset_name
+	output_dir = FLAGS.output_dir
 	
 	builder = tf.saved_model.builder.SavedModelBuilder(output_dir)
 	

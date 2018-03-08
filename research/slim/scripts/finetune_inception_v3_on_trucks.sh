@@ -56,7 +56,7 @@ python eval_image_classifier.py \
   --model_name=inception_v3
 
 
-# Fine-tune all the new layers for 500 steps.
+# Fine-tune all the new layers for 1000 steps.
 python train_image_classifier.py \
   --train_dir=${TRAIN_DIR}/all \
   --dataset_name=trucks \
@@ -64,7 +64,7 @@ python train_image_classifier.py \
   --dataset_dir=${DATASET_DIR} \
   --model_name=inception_v3 \
   --checkpoint_path=${TRAIN_DIR} \
-  --max_number_of_steps=500 \
+  --max_number_of_steps=1000 \
   --batch_size=64 \
   --learning_rate=0.0001 \
   --learning_rate_decay_type=fixed \
@@ -82,6 +82,26 @@ python eval_image_classifier.py \
   --dataset_split_name=validation \
   --dataset_dir=${DATASET_DIR} \
   --model_name=inception_v3
+
+# Matriz de confusion
+NUM_CLASSES=$(wc -l < ${DATASET_DIR}/tfrecords/labels.txt)
+find -L ${DATASET_DIR}/images/ -maxdepth 2 -type f > images.txt  
+python classify_image.py \
+  --num_classes ${NUM_CLASSES} \
+  --infile images.txt \
+  --model_name inception_v3 \
+  --checkpoint_path ${TRAIN_DIR}/all \
+  --outfile predictions.txt
+gsutil mv images.txt gs://sit-temp && gsutil mv predictions.txt gs://sit-temp
+
+python eval_image_classifier_cm.py  \
+  --checkpoint_path=${TRAIN_DIR}/all \
+  --eval_dir=${TRAIN_DIR}/all \
+  --dataset_name=trucks \
+  --dataset_split_name=validation \
+  --dataset_dir=${DATASET_DIR} \
+  --model_name=inception_v3
+
 
 #Para exportar el grafo 
 python export_inference_graph.py \
@@ -106,7 +126,7 @@ cd $TENSORFLOWDIR
 
 bazel-bin/tensorflow/python/tools/freeze_graph \
   --input_graph=${TRAIN_DIR}/inception_v3_inf_graph.pb \
-  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-500 \
+  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-1000 \
   --input_binary=true --output_graph=${TRAIN_DIR}/all/frozen_inception_v3.pb \
   --output_node_names=InceptionV3/Predictions/Reshape_1
 
@@ -122,7 +142,26 @@ bazel-bin/tensorflow/examples/label_image/label_image \
   --labels=${DATASET_DIR}/tfrecords/labels.txt \
   --input_mean=0 \
   --input_std=255 \
-  --image=${DATASET_DIR}/images/concrete-mixer/00000000f5967924_150505_093504_-1.jpg_crop0.jpg
+  --image=${DATASET_DIR}/images/concrete-mixer/111_0_camion-hormigonerorevolvedor-de-concreto-2009-8600-1658_n.jpg
+
+ 
+#Para servir el grafo en plataforma VP2____________________________________________ 
+cd ${SLIM_DIR}
+python export_inference_graph_vp2.py \
+  --alsologtostderr \
+  --model_name=inception_v3 \
+  --dataset_name=trucks \
+  --dataset_dir=${DATASET_DIR} \
+  --output_file=${TRAIN_DIR}/inception_v3_inf_graph_vp2.pb
+
+#Para congelar un grafo con los parametros entrenados
+cd $TENSORFLOWDIR
+bazel-bin/tensorflow/python/tools/freeze_graph \
+  --input_graph=${TRAIN_DIR}/inception_v3_inf_graph_vp2.pb \
+  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-1000 \
+  --input_binary=true \
+  --output_graph=${TRAIN_DIR}/all/frozen_inception_v3_vp2.pb \
+  --output_node_names=InceptionV3/Predictions/Reshape_1
   
   
 #Para subir y servir el grafo en Google ML Engine__________________________________
@@ -184,6 +223,7 @@ TEST_IMAGE=https://i.pinimg.com/736x/f4/2d/7e/f42d7eb4f4aa9318bfbeab73285ed2fc--
 wget ${TEST_IMAGE} -O image.jpg
 python -c 'import base64, sys, json; img = base64.b64encode(open(sys.argv[1], "rb").read()); print json.dumps({"key":"0", "image_bytes": {"b64": img}})' image.jpg &> request.json
 gcloud ml-engine predict --model ${MODEL_NAME} --json-instances request.json
+#gcloud ml-engine local predict --model-dir ${TRAIN_DIR}/all/saved_model --json-instances=request.json
 rm -f image.jpg request.json
 
 
