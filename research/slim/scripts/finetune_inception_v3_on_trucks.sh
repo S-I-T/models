@@ -198,7 +198,7 @@ cd ${SLIM_DIR}
 python convert_frozen_graph_to_saved_model.py \
   --input_graph=${TRAIN_DIR}/all/frozen_inception_v3_serve.pb \
   --input_node_name=input_jpeg \
-  --output_node_name=InceptionV3/Predictions/Reshape_1
+  --output_node_name=InceptionV3/Predictions/Reshape_1 \
   --output_dir=${TRAIN_DIR}/all/saved_model
 
 
