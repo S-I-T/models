@@ -27,6 +27,29 @@ import tensorflow as tf
 import dataset
 import mnist
 
+# Cloud TPU Cluster Resolver flags
+tf.flags.DEFINE_string(
+    "tpu", default=None,
+    help="The Cloud TPU to use for training. This should be either the name "
+    "used when creating the Cloud TPU, or a grpc://ip.address.of.tpu:8470 "
+    "url.")
+tf.flags.DEFINE_string(
+    "tpu_zone", default=None,
+    help="[Optional] GCE zone where the Cloud TPU is located in. If not "
+    "specified, we will attempt to automatically detect the GCE project from "
+    "metadata.")
+tf.flags.DEFINE_string(
+    "gcp_project", default=None,
+    help="[Optional] Project name for the Cloud TPU-enabled project. If not "
+    "specified, we will attempt to automatically detect the GCE project from "
+    "metadata.")
+
+# Model specific parameters
+tf.flags.DEFINE_string(
+    "master", default=None,
+    help="GRPC URL of the master (e.g. grpc://ip.address.of.tpu:8470). You "
+    "must specify either this flag or --tpu_name.")
+
 tf.flags.DEFINE_string("data_dir", "",
                        "Path to directory containing the MNIST dataset")
 tf.flags.DEFINE_string("model_dir", None, "Estimator model_dir")
@@ -40,7 +63,6 @@ tf.flags.DEFINE_integer("eval_steps", 0,
 tf.flags.DEFINE_float("learning_rate", 0.05, "Learning rate.")
 
 tf.flags.DEFINE_bool("use_tpu", True, "Use TPUs rather than plain CPUs")
-tf.flags.DEFINE_string("master", "local", "GRPC URL of the Cloud TPU instance.")
 tf.flags.DEFINE_integer("iterations", 50,
                         "Number of iterations per TPU training loop.")
 tf.flags.DEFINE_integer("num_shards", 8, "Number of shards (TPU chips).")
@@ -50,11 +72,13 @@ FLAGS = tf.flags.FLAGS
 
 def metric_fn(labels, logits):
   accuracy = tf.metrics.accuracy(
-      labels=tf.argmax(labels, axis=1), predictions=tf.argmax(logits, axis=1))
+      labels=labels, predictions=tf.argmax(logits, axis=1))
   return {"accuracy": accuracy}
 
 
 def model_fn(features, labels, mode, params):
+  """model_fn constructs the ML model used to predict handwritten digits."""
+
   del params
   if mode == tf.estimator.ModeKeys.PREDICT:
     raise RuntimeError("mode {} is not supported yet".format(mode))
@@ -64,7 +88,7 @@ def model_fn(features, labels, mode, params):
 
   model = mnist.Model("channels_last")
   logits = model(image, training=(mode == tf.estimator.ModeKeys.TRAIN))
-  loss = tf.losses.softmax_cross_entropy(onehot_labels=labels, logits=logits)
+  loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
 
   if mode == tf.estimator.ModeKeys.TRAIN:
     learning_rate = tf.train.exponential_decay(
@@ -86,6 +110,7 @@ def model_fn(features, labels, mode, params):
 
 
 def train_input_fn(params):
+  """train_input_fn defines the input pipeline used for training."""
   batch_size = params["batch_size"]
   data_dir = params["data_dir"]
   # Retrieves the batch size for the current shard. The # of shards is
@@ -111,9 +136,11 @@ def main(argv):
   del argv  # Unused.
   tf.logging.set_verbosity(tf.logging.INFO)
 
+  tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
+            FLAGS.tpu, zone=FLAGS.tpu_zone, project=FLAGS.gcp_project)
+
   run_config = tf.contrib.tpu.RunConfig(
-      master=FLAGS.master,
-      evaluation_master=FLAGS.master,
+      cluster=tpu_cluster_resolver,
       model_dir=FLAGS.model_dir,
       session_config=tf.ConfigProto(
           allow_soft_placement=True, log_device_placement=True),
@@ -133,7 +160,8 @@ def main(argv):
   # Note that the number of examples used during evaluation is
   # --eval_steps * --batch_size.
   # So if you change --batch_size then change --eval_steps too.
-  estimator.evaluate(input_fn=eval_input_fn, steps=FLAGS.eval_steps)
+  if FLAGS.eval_steps:
+    estimator.evaluate(input_fn=eval_input_fn, steps=FLAGS.eval_steps)
 
 
 if __name__ == "__main__":

@@ -22,7 +22,6 @@ import unittest
 import tensorflow as tf
 
 import imagenet_main
-import resnet_model
 
 tf.logging.set_verbosity(tf.logging.ERROR)
 
@@ -35,7 +34,9 @@ class BaseTest(tf.test.TestCase):
   def tensor_shapes_helper(self, resnet_size, with_gpu=False):
     """Checks the tensor shapes after each phase of the ResNet model."""
     def reshape(shape):
-      """Returns the expected dimensions depending on if a GPU is being used."""
+      """Returns the expected dimensions depending on if a
+      GPU is being used.
+      """
       # If a GPU is used for the test, the shape is returned (already in NCHW
       # form). When GPU is not used, the shape is converted to NHWC.
       if with_gpu:
@@ -46,11 +47,11 @@ class BaseTest(tf.test.TestCase):
 
     with graph.as_default(), self.test_session(
         use_gpu=with_gpu, force_gpu=with_gpu):
-      model = resnet_model.imagenet_resnet_v2(
-          resnet_size, 456,
+      model = imagenet_main.ImagenetModel(
+          resnet_size,
           data_format='channels_first' if with_gpu else 'channels_last')
       inputs = tf.random_uniform([1, 224, 224, 3])
-      output = model(inputs, is_training=True)
+      output = model(inputs, training=True)
 
       initial_conv = graph.get_tensor_by_name('initial_conv:0')
       max_pool = graph.get_tensor_by_name('initial_max_pool:0')
@@ -79,8 +80,8 @@ class BaseTest(tf.test.TestCase):
         self.assertAllEqual(block_layer4.shape, reshape((1, 2048, 7, 7)))
         self.assertAllEqual(avg_pool.shape, reshape((1, 2048, 1, 1)))
 
-      self.assertAllEqual(dense.shape, (1, 456))
-      self.assertAllEqual(output.shape, (1, 456))
+      self.assertAllEqual(dense.shape, (1, _LABEL_CLASSES))
+      self.assertAllEqual(output.shape, (1, _LABEL_CLASSES))
 
   def test_tensor_shapes_resnet_18(self):
     self.tensor_shapes_helper(18)
@@ -124,27 +125,20 @@ class BaseTest(tf.test.TestCase):
   def test_tensor_shapes_resnet_200_with_gpu(self):
     self.tensor_shapes_helper(200, True)
 
-  def input_fn(self):
-    """Provides random features and labels."""
-    features = tf.random_uniform([_BATCH_SIZE, 224, 224, 3])
-    labels = tf.one_hot(
-        tf.random_uniform(
-            [_BATCH_SIZE], maxval=_LABEL_CLASSES - 1,
-            dtype=tf.int32),
-        _LABEL_CLASSES)
-
-    return features, labels
-
-  def resnet_model_fn_helper(self, mode):
+  def resnet_model_fn_helper(self, mode, multi_gpu=False):
     """Tests that the EstimatorSpec is given the appropriate arguments."""
     tf.train.create_global_step()
 
-    features, labels = self.input_fn()
-    spec = imagenet_main.resnet_model_fn(
+    input_fn = imagenet_main.get_synth_input_fn()
+    dataset = input_fn(True, '', _BATCH_SIZE)
+    iterator = dataset.make_one_shot_iterator()
+    features, labels = iterator.get_next()
+    spec = imagenet_main.imagenet_model_fn(
         features, labels, mode, {
             'resnet_size': 50,
             'data_format': 'channels_last',
             'batch_size': _BATCH_SIZE,
+            'multi_gpu': multi_gpu,
         })
 
     predictions = spec.predictions
@@ -169,12 +163,27 @@ class BaseTest(tf.test.TestCase):
   def test_resnet_model_fn_train_mode(self):
     self.resnet_model_fn_helper(tf.estimator.ModeKeys.TRAIN)
 
+  def test_resnet_model_fn_train_mode_multi_gpu(self):
+    self.resnet_model_fn_helper(tf.estimator.ModeKeys.TRAIN, multi_gpu=True)
+
   def test_resnet_model_fn_eval_mode(self):
     self.resnet_model_fn_helper(tf.estimator.ModeKeys.EVAL)
 
   def test_resnet_model_fn_predict_mode(self):
     self.resnet_model_fn_helper(tf.estimator.ModeKeys.PREDICT)
 
+  def test_imagenetmodel_shape(self):
+    batch_size = 135
+    num_classes = 246
+
+    model = imagenet_main.ImagenetModel(
+        50, data_format='channels_last', num_classes=num_classes)
+    fake_input = tf.random_uniform([batch_size, 224, 224, 3])
+    output = model(fake_input, training=True)
+
+    self.assertAllEqual(output.shape, (batch_size, num_classes))
+
 
 if __name__ == '__main__':
   tf.test.main()
+
