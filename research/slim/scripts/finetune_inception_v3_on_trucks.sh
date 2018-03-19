@@ -4,13 +4,18 @@
 
 
 # Where the pre-trained InceptionV3 checkpoint is saved to.
-PRETRAINED_CHECKPOINT_DIR=/root/models/tf-slim/public
+# O bien el directorio donde estan los archivos de checkpoint pre-entrenados
+PRETRAINED_CHECKPOINT_DIR=/root/models/tf-slim/public/inception_v3.ckpt
 
 # Where the training (fine-tuned) checkpoint and logs will be saved to.
 TRAIN_DIR=/root/models/tf-slim/train/Trucks/inception_v3
 
 # Where the dataset is saved to.
 DATASET_DIR=/root/databases/Trucks
+
+# Cuantos pasos entrenar cada fase del modelo
+FINETUNE_STEPS=2000
+FINETUNE_ALL_LAYERS_STEPS=1000
 
 # Otras definiciones
 TENSORFLOWDIR=/tensorflow
@@ -32,10 +37,10 @@ python train_image_classifier.py \
   --dataset_split_name=train \
   --dataset_dir=${DATASET_DIR} \
   --model_name=inception_v3 \
-  --checkpoint_path=${PRETRAINED_CHECKPOINT_DIR}/inception_v3.ckpt \
+  --checkpoint_path=${PRETRAINED_CHECKPOINT_DIR} \
   --checkpoint_exclude_scopes=InceptionV3/Logits,InceptionV3/AuxLogits \
   --trainable_scopes=InceptionV3/Logits,InceptionV3/AuxLogits \
-  --max_number_of_steps=2000 \
+  --max_number_of_steps=${FINETUNE_STEPS} \
   --batch_size=64 \
   --learning_rate=0.01 \
   --learning_rate_decay_type=fixed \
@@ -64,7 +69,7 @@ python train_image_classifier.py \
   --dataset_dir=${DATASET_DIR} \
   --model_name=inception_v3 \
   --checkpoint_path=${TRAIN_DIR} \
-  --max_number_of_steps=1000 \
+  --max_number_of_steps=${FINETUNE_ALL_LAYERS_STEPS} \
   --batch_size=64 \
   --learning_rate=0.0001 \
   --learning_rate_decay_type=fixed \
@@ -126,7 +131,7 @@ cd $TENSORFLOWDIR
 
 bazel-bin/tensorflow/python/tools/freeze_graph \
   --input_graph=${TRAIN_DIR}/inception_v3_inf_graph.pb \
-  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-1000 \
+  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-${FINETUNE_ALL_LAYERS_STEPS} \
   --input_binary=true --output_graph=${TRAIN_DIR}/all/frozen_inception_v3.pb \
   --output_node_names=InceptionV3/Predictions/Reshape_1
 
@@ -158,7 +163,7 @@ python export_inference_graph_vp2.py \
 cd $TENSORFLOWDIR
 bazel-bin/tensorflow/python/tools/freeze_graph \
   --input_graph=${TRAIN_DIR}/inception_v3_inf_graph_vp2.pb \
-  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-1000 \
+  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-${FINETUNE_ALL_LAYERS_STEPS} \
   --input_binary=true \
   --output_graph=${TRAIN_DIR}/all/frozen_inception_v3_vp2.pb \
   --output_node_names=InceptionV3/Predictions/Reshape_1
@@ -188,7 +193,7 @@ bazel-bin/tensorflow/tools/graph_transforms/summarize_graph \
 cd $TENSORFLOWDIR
 bazel-bin/tensorflow/python/tools/freeze_graph \
   --input_graph=${TRAIN_DIR}/inception_v3_inf_graph_serve.pb \
-  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-1000 \
+  --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-${FINETUNE_ALL_LAYERS_STEPS} \
   --input_binary=true --output_graph=${TRAIN_DIR}/all/frozen_inception_v3_serve.pb \
   --output_node_names=InceptionV3/Predictions/Reshape_1
 

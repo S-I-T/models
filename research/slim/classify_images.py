@@ -5,8 +5,20 @@ import numpy as np
 import sys
 import os
 
-# Ejemplo
+# Ejemplos
+# find -L $DIRECTORY -type f -name "*.jpg" > images.txt
 # python classify_images.py -m models/Trucks_c_4c_inceptionv3_v0.pb -i input_image -o InceptionV3/Predictions/Reshape_1 -f images.txt -r predictions.txt
+# python classify_images.py -m models/Trucks_c_5c_inceptionv3_v0.pb -i input_image -o InceptionV3/Predictions/Reshape_1 -f images2.txt -r predictions_test.txt -d eliminar -l models/Trucks_c_5c_inceptionv3_v0.txt
+#
+#MODEL=/root/models/tf-slim/train/Trucks-concrete/inception_v3/all/frozen_inception_v3_vp2.pb
+#python classify_images.py \
+#	-m $MODEL \
+#	-i input_image \
+#	-o InceptionV3/Predictions/Reshape_1 \
+#	-f images.txt \
+#	-r predictions.txt
+
+
 
 def load_graph(frozen_graph_filename):
 	# We load the protobuf file from the disk and parse it to retrieve the 
@@ -36,7 +48,7 @@ def parse_args():
 	parser.add_argument('-f','--input_file', type=str, help="Input text file, one image per line", required=True)
 	parser.add_argument('-r','--output_file', default=None, type=str, help="Output file name for prediction probabilities")
 	parser.add_argument('-d','--output_dir', default=None, type=str, help="Output dir to move classified images")
-	parser.add_argument('-t','--thresholds', default=None, type=str, help="Threshold to use to classify images, defaults to max score")
+	parser.add_argument('-t','--thresholds', default=None, type=str, help="Thresholds to use to classify images, defaults to max score. One per class")
 	parser.add_argument('-l','--labels', default=None, type=str, help="Labels to use when moving images")
 	args = parser.parse_args()
 	return args
@@ -78,8 +90,13 @@ if __name__ == '__main__':
 		if args.labels is not None:			
 			labels = read_labels(args.labels)
 			for label in labels:
-				if not os.path.exists(output_dir + '/' + label):
-					os.makedirs(output_dir + '/' + label)
+				if not os.path.exists(args.output_dir + '/' + label):
+					os.makedirs(args.output_dir + '/' + label)
+			if not os.path.exists(args.output_dir + '/unknown' ):
+				os.makedirs(args.output_dir + '/unknown' )
+	
+	if args.thresholds is not None:
+		thresholds = args.thresholds.strip().split(',')
 	
 	num_classes = 0	
 	
@@ -113,8 +130,9 @@ if __name__ == '__main__':
 				else:
 					header.extend(['class%s' % i for i in range(num_classes)])
 					labels = [str(i) for i in range(num_classes)]
+				header.append('max_score')
+				header.append('threshold')
 				header.append('predicted_class')
-				header.append('predicted_score')
 				
 				print('\t'.join(header), file=fout)
 			
@@ -123,8 +141,18 @@ if __name__ == '__main__':
 			max_i = np.argmax(probs)
 			row = [image_name]
 			row.extend(probs)
-			row.append(max_i)
 			row.append(probs[max_i])
+			
+			if args.thresholds is not None:
+				row.append(thresholds[max_i])
+				if probs[max_i] >= thresholds[max_i]:
+					row.append(labels[max_i])
+				else:
+					row.append('unknown')
+			else:
+				row.append(0)
+				row.append(labels[max_i])
+			
 			print('\t'.join([str(e) for e in row]), file=fout)
 
 		
