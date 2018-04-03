@@ -1,11 +1,33 @@
-#Limpiar modelos previos
-#rm -rf /root/databases/Trucks/tfrecords
-#rm -rf /root/models/tf-slim/train/Trucks/inception_v3 
+#!/bin/bash
+# Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+#
+# This script performs the following operations:
+# 1. Downloads the Flowers dataset
+# 2. Fine-tunes an Inception Resnet V2 model on the Flowers training set.
+# 3. Evaluates the model on the Flowers validation set.
+#
+# Usage:
+# cd slim
+# ./slim/scripts/finetune_inception_resnet_v2_on_flowers.sh
+set -e
 
 # Model to train
-MODEL_NAME=inception_v3
+MODEL_NAME=inception_resnet_v2
 
-# Where the pre-trained InceptionV3 checkpoint is saved to.
+# Where the pre-trained InceptionResnetV2 checkpoint is saved to.
 # O bien el directorio donde estan los archivos de checkpoint pre-entrenados
 PRETRAINED_CHECKPOINT_DIR=/root/models/tf-slim/public/${MODEL_NAME}.ckpt
 
@@ -16,7 +38,7 @@ TRAIN_DIR=/root/models/tf-slim/train/Trucks/${MODEL_NAME}
 DATASET_DIR=/root/databases/Trucks
 
 # Cuantos pasos entrenar cada fase del modelo
-FINETUNE_STEPS=2000
+FINETUNE_STEPS=1000
 FINETUNE_ALL_LAYERS_STEPS=1000
 
 # Otras definiciones
@@ -27,13 +49,24 @@ SLIM_DIR=/root/src/models/research/slim
 
 cd ${SLIM_DIR}
 
+# Download the pre-trained checkpoint.
+if [ ! -d "$PRETRAINED_CHECKPOINT_DIR" ]; then
+  mkdir ${PRETRAINED_CHECKPOINT_DIR}
+fi
+if [ ! -f ${PRETRAINED_CHECKPOINT_DIR}/${MODEL_NAME}.ckpt ]; then
+  wget http://download.tensorflow.org/models/inception_resnet_v2_2016_08_30.tar.gz
+  tar -xvf inception_resnet_v2_2016_08_30.tar.gz
+  mv inception_resnet_v2_2016_08_30.ckpt ${PRETRAINED_CHECKPOINT_DIR}
+  rm inception_resnet_v2_2016_08_30.tar.gz
+fi
+
 # Download the dataset
 python download_and_convert_data.py \
   --dataset_name=trucks \
   --dataset_dir=${DATASET_DIR}
 
 
-# Fine-tune only the new layers for 1000 steps.
+# Fine-tune only the new layers for N steps.
 python train_image_classifier.py \
   --train_dir=${TRAIN_DIR} \
   --dataset_name=trucks \
@@ -41,15 +74,15 @@ python train_image_classifier.py \
   --dataset_dir=${DATASET_DIR} \
   --model_name=${MODEL_NAME} \
   --checkpoint_path=${PRETRAINED_CHECKPOINT_DIR} \
-  --checkpoint_exclude_scopes=InceptionV3/Logits,InceptionV3/AuxLogits \
-  --trainable_scopes=InceptionV3/Logits,InceptionV3/AuxLogits \
+  --checkpoint_exclude_scopes=InceptionResnetV2/Logits,InceptionResnetV2/AuxLogits \
+  --trainable_scopes=InceptionResnetV2/Logits,InceptionResnetV2/AuxLogits \
   --max_number_of_steps=${FINETUNE_STEPS} \
-  --batch_size=64 \
+  --batch_size=32 \
   --learning_rate=0.01 \
   --learning_rate_decay_type=fixed \
   --save_interval_secs=60 \
   --save_summaries_secs=60 \
-  --log_every_n_steps=100 \
+  --log_every_n_steps=10 \
   --optimizer=rmsprop \
   --weight_decay=0.00004
   
@@ -60,7 +93,8 @@ python eval_image_classifier.py \
   --dataset_name=trucks \
   --dataset_split_name=validation \
   --dataset_dir=${DATASET_DIR} \
-  --model_name=${MODEL_NAME}
+  --model_name=${MODEL_NAME} \
+  --eval_image_size=299
 
 
 # Fine-tune all the new layers for N steps.
@@ -72,7 +106,7 @@ python train_image_classifier.py \
   --model_name=${MODEL_NAME} \
   --checkpoint_path=${TRAIN_DIR} \
   --max_number_of_steps=${FINETUNE_ALL_LAYERS_STEPS} \
-  --batch_size=64 \
+  --batch_size=32 \
   --learning_rate=0.0001 \
   --learning_rate_decay_type=fixed \
   --save_interval_secs=60 \
@@ -88,7 +122,8 @@ python eval_image_classifier.py \
   --dataset_name=trucks \
   --dataset_split_name=validation \
   --dataset_dir=${DATASET_DIR} \
-  --model_name=${MODEL_NAME}
+  --model_name=${MODEL_NAME} \
+  --eval_image_size=299
 
 
 # Matriz de confusion
@@ -108,7 +143,8 @@ python eval_image_classifier_cm.py  \
   --dataset_name=trucks \
   --dataset_split_name=validation \
   --dataset_dir=${DATASET_DIR} \
-  --model_name=${MODEL_NAME}
+  --model_name=${MODEL_NAME} \
+  --eval_image_size=299
 
 
 
@@ -120,7 +156,8 @@ python export_inference_graph.py \
   --model_name=${MODEL_NAME} \
   --dataset_name=trucks \
   --dataset_dir=${DATASET_DIR} \
-  --output_file=${TRAIN_DIR}/${MODEL_NAME}_inf_graph.pb
+  --output_file=${TRAIN_DIR}/${MODEL_NAME}_inf_graph.pb \
+  --image_size=299
   
 
 #Para revisar el grafo creado, y ver los nombres de los nodos de salida
@@ -139,7 +176,7 @@ bazel-bin/tensorflow/python/tools/freeze_graph \
   --input_graph=${TRAIN_DIR}/${MODEL_NAME}_inf_graph.pb \
   --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-${FINETUNE_ALL_LAYERS_STEPS} \
   --input_binary=true --output_graph=${TRAIN_DIR}/all/frozen_${MODEL_NAME}.pb \
-  --output_node_names=InceptionV3/Predictions/Reshape_1
+  --output_node_names=InceptionResnetV2/Logits/Predictions
 
 
 #Para evaluar un grafo con una imagen
@@ -148,9 +185,11 @@ cd $TENSORFLOWDIR
 
 bazel-bin/tensorflow/examples/label_image/label_image \
   --input_layer=input \
-  --output_layer=InceptionV3/Predictions/Reshape_1 \
+  --output_layer=InceptionResnetV2/Logits/Predictions \
   --graph=${TRAIN_DIR}/all/frozen_${MODEL_NAME}.pb \
   --labels=${DATASET_DIR}/tfrecords/labels.txt \
+  --input_width=299 \
+  --input_height=299 \
   --input_mean=0 \
   --input_std=255 \
   --image=${DATASET_DIR}/images/concrete-mixer/111_0_camion-hormigonerorevolvedor-de-concreto-2009-8600-1658_n.jpg
@@ -163,7 +202,9 @@ python export_inference_graph_vp2.py \
   --model_name=${MODEL_NAME} \
   --dataset_name=trucks \
   --dataset_dir=${DATASET_DIR} \
-  --output_file=${TRAIN_DIR}/${MODEL_NAME}_inf_graph_vp2.pb
+  --output_file=${TRAIN_DIR}/${MODEL_NAME}_inf_graph_vp2.pb \
+  --image_size=299
+
 
 #Para congelar un grafo con los parametros entrenados
 cd $TENSORFLOWDIR
@@ -172,7 +213,7 @@ bazel-bin/tensorflow/python/tools/freeze_graph \
   --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-${FINETUNE_ALL_LAYERS_STEPS} \
   --input_binary=true \
   --output_graph=${TRAIN_DIR}/all/frozen_${MODEL_NAME}_vp2.pb \
-  --output_node_names=InceptionV3/Predictions/Reshape_1
+  --output_node_names=InceptionResnetV2/Logits/Predictions
   
   
 #Para subir y servir el grafo en Google ML Engine__________________________________
@@ -201,7 +242,7 @@ bazel-bin/tensorflow/python/tools/freeze_graph \
   --input_graph=${TRAIN_DIR}/${MODEL_NAME}_inf_graph_serve.pb \
   --input_checkpoint=${TRAIN_DIR}/all/model.ckpt-${FINETUNE_ALL_LAYERS_STEPS} \
   --input_binary=true --output_graph=${TRAIN_DIR}/all/frozen_${MODEL_NAME}_serve.pb \
-  --output_node_names=InceptionV3/Predictions/Reshape_1
+  --output_node_names=InceptionResnetV2/Predictions/Reshape_1
 
   
 #Para transformar ese grafo a formato saved_model
@@ -209,7 +250,7 @@ cd ${SLIM_DIR}
 python convert_frozen_graph_to_saved_model.py \
   --input_graph=${TRAIN_DIR}/all/frozen_${MODEL_NAME}_serve.pb \
   --input_node_name=input_jpeg \
-  --output_node_name=InceptionV3/Predictions/Reshape_1 \
+  --output_node_name=InceptionResnetV2/Predictions/Reshape_1 \
   --output_dir=${TRAIN_DIR}/all/saved_model
 
 
@@ -218,7 +259,7 @@ python convert_frozen_graph_to_saved_model.py \
 #sudo ./sit-machine-learning_upload.sh
 MODEL_NAME=Trucks_classificator
 REGION=us-central1
-VERSION_NAME=inceptionv3_v0
+VERSION_NAME=inception_resnetv2_v0
 VERSION_DESCRIPTION="Camiones descargados de internet. Tipos de camiones: 0:concrete-mixer, 1:crane-truck, 2:dump-truck, 3:other-truck, 4:water-tank-truck"
 GCS_BUCKET=gs://sit-machine-learning/data/models/detector_classificator/tf-slim/train/Trucks/${MODEL_NAME}/all/saved_model
 

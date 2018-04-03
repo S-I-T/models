@@ -4,6 +4,7 @@ import imageio
 import numpy as np
 import sys
 import os
+import shutil
 
 # Ejemplos
 # find -L $DIRECTORY -type f -name "*.jpg" > images.txt
@@ -96,7 +97,7 @@ if __name__ == '__main__':
 				os.makedirs(args.output_dir + '/unknown' )
 	
 	if args.thresholds is not None:
-		thresholds = args.thresholds.strip().split(',')
+		thresholds = [ float(s) for s in args.thresholds.strip().split(',') ]
 	
 	num_classes = 0	
 	
@@ -154,5 +155,9 @@ if __name__ == '__main__':
 				row.append(labels[max_i])
 			
 			print('\t'.join([str(e) for e in row]), file=fout)
+			
+			if args.output_dir is not None:
+				shutil.move(image_path, args.output_dir + '/' + row[-1] + '/' + image_name)
+				#shutil.copy2(input_dir + '/' + image_name, output_dir + '/' + label + '/' + image_name.replace('.jpg','--({})-({:.5f}).jpg'.format(max_index,max_score)))
 
 		
