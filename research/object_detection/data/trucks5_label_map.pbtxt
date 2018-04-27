@@ -1,0 +1,24 @@
+item {
+  id: 1
+  name: 'concrete-mixer'
+}
+
+item {
+  id: 2
+  name: 'dump-truck	'
+}
+
+item {
+  id: 3
+  name: 'water-tank-truck'
+}
+
+item {
+  id: 4
+  name: 'crane-truck'
+}
+
+item {
+  id: 5
+  name: 'other-truck'
+}
