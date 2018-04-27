@@ -129,7 +129,7 @@ def dict_to_tf_example(data,
 
 def main(_):
   if FLAGS.set not in SETS:
-    raise ValueError('set must be in : {}'.format(SETS))
+    raise ValueError('set must be in : {} '.format(SETS))
 
   data_dir = FLAGS.data_dir
   writer = tf.python_io.TFRecordWriter(FLAGS.output_path)
