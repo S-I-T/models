@@ -135,7 +135,7 @@ if __name__ == '__main__':
 				header.append('threshold')
 				header.append('predicted_class')
 				
-				print('\t'.join(header), file=fout)
+				fout.write('\t'.join(header) + "\n")
 			
 			image_name = os.path.basename(image_path)
 			probs = y_out[0, 0:]
@@ -154,7 +154,7 @@ if __name__ == '__main__':
 				row.append(0)
 				row.append(labels[max_i])
 			
-			print('\t'.join([str(e) for e in row]), file=fout)
+			fout.write('\t'.join([str(e) for e in row]) + "\n")
 			
 			if args.output_dir is not None:
 				shutil.move(image_path, args.output_dir + '/' + row[-1] + '/' + image_name)
