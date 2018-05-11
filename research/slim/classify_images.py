@@ -6,8 +6,11 @@ import sys
 import os
 import shutil
 
-# Ejemplos
-# find -L $DIRECTORY -type f -name "*.jpg" > images.txt
+## Ejemplos
+## Eliminar imagenes erroneas
+# find -L $DIRECTORY -type f -name "*.jpg" -size -1k -delete
+## Crear archivo images 
+# find -L $DIRECTORY -type f -name "*.jpg" | sort -t '\0' -n > images.txt
 # python classify_images.py -m models/Trucks_c_4c_inceptionv3_v0.pb -i input_image -o InceptionV3/Predictions/Reshape_1 -f images.txt -r predictions.txt
 # python classify_images.py -m models/Trucks_c_5c_inceptionv3_v0.pb -i input_image -o InceptionV3/Predictions/Reshape_1 -f images2.txt -r predictions_test.txt -d eliminar -l models/Trucks_c_5c_inceptionv3_v0.txt
 #

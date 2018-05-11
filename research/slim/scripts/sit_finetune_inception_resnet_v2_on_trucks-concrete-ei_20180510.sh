@@ -32,14 +32,14 @@ MODEL_NAME=inception_resnet_v2
 PRETRAINED_CHECKPOINT_DIR=/root/models/tf-slim/public/${MODEL_NAME}.ckpt
 
 # Where the training (fine-tuned) checkpoint and logs will be saved to.
-TRAIN_DIR=/root/models/tf-slim/train/Trucks/${MODEL_NAME}
+TRAIN_DIR=/root/models/tf-slim/train/Trucks-concrete-ei/${MODEL_NAME}
 
 # Where the dataset is saved to.
-DATASET_DIR=/root/databases/Trucks
+DATASET_DIR=/root/databases/Trucks-concrete-ei
 
 # Cuantos pasos entrenar cada fase del modelo
 FINETUNE_STEPS=1000
-FINETUNE_ALL_LAYERS_STEPS=1000
+FINETUNE_ALL_LAYERS_STEPS=2000
 
 # Otras definiciones
 TENSORFLOWDIR=/tensorflow
@@ -96,7 +96,7 @@ python eval_image_classifier.py \
   --model_name=${MODEL_NAME} \
   --eval_image_size=299
 
-
+#MODIFICADO EN ALLLLLL"!!!!!!!
 # Fine-tune all the new layers for N steps.
 python train_image_classifier.py \
   --train_dir=${TRAIN_DIR}/all \
