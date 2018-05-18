@@ -22,6 +22,7 @@
 /research/lexnet_nc/ @vered1986 @waterson
 /research/lfads/ @jazcollins @susillo
 /research/lm_1b/ @oriolvinyals @panyx0718
+/research/marco/ @vincentvanhoucke
 /research/maskgan/ @a-dai
 /research/namignizer/ @knathanieltucker
 /research/neural_gpu/ @lukaszkaiser
@@ -44,7 +45,7 @@
 /research/transformer/ @daviddao
 /research/video_prediction/ @cbfinn
 /research/fivo/ @dieterichlawson
-/samples/ @MarkDaoust
+/samples/ @MarkDaoust @lamberta
 /samples/languages/java/ @asimshankar
 /tutorials/embedding/ @zffchen78 @a-dai
 /tutorials/image/ @sherrym @shlens
