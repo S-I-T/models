@@ -43,7 +43,7 @@ _DB_PREFIX = 'trucks'
 _DATA_URL = 'http://download.tensorflow.org/example_images/flower_photos.tgz'
 
 # The percent of samples to keep for validation
-_PERC_VALIDATION = 10
+_PERC_VALIDATION = 20
 
 # Seed for repeatability.
 _RANDOM_SEED = 0

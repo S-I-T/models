@@ -35,7 +35,7 @@ slim = tf.contrib.slim
 _DB_PREFIX = 'trucks' 
 
 # The percent of samples to keep for validation
-_PERC_VALIDATION = 10
+_PERC_VALIDATION = 20
 
 _FILE_PATTERN = _DB_PREFIX + '_%s_*.tfrecord'
 
