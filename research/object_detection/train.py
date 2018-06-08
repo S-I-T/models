@@ -81,7 +81,8 @@ flags.DEFINE_string('input_config_path', '',
                     'Path to an input_reader_pb2.InputReader config file.')
 flags.DEFINE_string('model_config_path', '',
                     'Path to a model_pb2.DetectionModel config file.')
-
+flags.DEFINE_float('gpu_memory_fraction ', -1.0,
+                    'Memory fraction of GPU memory to use, values in interval (0, 1). Default is all.')
 FLAGS = flags.FLAGS
 
 
@@ -177,7 +178,8 @@ def main(_):
       worker_job_name,
       is_chief,
       FLAGS.train_dir,
-      graph_hook_fn=graph_rewriter_fn)
+      graph_hook_fn=graph_rewriter_fn,
+      FLAGS.gpu_memory_fraction)
 
 
 if __name__ == '__main__':

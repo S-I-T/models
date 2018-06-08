@@ -214,7 +214,8 @@ def train(create_tensor_dict_fn,
           worker_job_name,
           is_chief,
           train_dir,
-          graph_hook_fn=None):
+          graph_hook_fn=None,
+          gpu_memory_fraction=-1.0):
   """Training function for detection models.
 
   Args:
@@ -354,6 +355,8 @@ def train(create_tensor_dict_fn,
     # Soft placement allows placing on CPU ops without GPU implementation.
     session_config = tf.ConfigProto(allow_soft_placement=True,
                                     log_device_placement=False)
+    if gpu_memory_fraction >= 0:
+        session_config.gpu_options.per_process_gpu_memory_fraction = gpu_memory_fraction
 
     # Save checkpoints regularly.
     keep_checkpoint_every_n_hours = train_config.keep_checkpoint_every_n_hours
