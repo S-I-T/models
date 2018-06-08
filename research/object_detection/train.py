@@ -179,7 +179,7 @@ def main(_):
       is_chief,
       FLAGS.train_dir,
       graph_hook_fn=graph_rewriter_fn,
-      FLAGS.gpu_memory_fraction)
+      gpu_memory_fraction=FLAGS.gpu_memory_fraction)
 
 
 if __name__ == '__main__':
