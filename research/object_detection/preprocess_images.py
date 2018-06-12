@@ -1,54 +1,10 @@
-import glob
 import os
 import base64
 import json
 from io import BytesIO
 from PIL import Image
 import argparse
-import concurrent.futures
 import time
-
-class ImageProcessor:
-	def __init__(self, roi, resize, keep_ar, output_dir):
-		self.roi = roi
-		self.resize = resize
-		self.keep_ar = keep_ar
-		self.output_dir = output_dir
-
-	def process_image(self, image_file):
-		
-		#print("Procesando: {}".format(image_file))
-		aux = image_file[image_file.rfind('/')+1:]
-		aux = aux[aux.rfind('\\')+1:]		
-						
-		image = Image.open(image_file)
-		image_name_out = None
-	    
-		if self.roi != None:
-			image = image.crop((self.roi))
-		
-		if self.output_dir != None and self.keep_ar:			
-			image_name_out = os.path.join(self.output_dir, aux)
-			image.save(image_name_out, format='JPEG')
-		
-		if self.resize != None:
-			image = image.resize((self.resize[0], self.resize[1]), Image.BILINEAR)
-		
-		if self.output_dir != None and not self.keep_ar:
-			image_name_out = os.path.join(self.output_dir, aux)
-			image.save(image_name_out, format='JPEG')
-			
-		resized_handle = BytesIO()
-		image.save(resized_handle, format='JPEG')
-		encoded_contents = base64.b64encode(resized_handle.getvalue()).decode('ascii')
-		
-		# key can be any UTF-8 string, since it goes in a HTTP request.
-		row = json.dumps({'key': aux, 'image_bytes': {'b64': encoded_contents}})
-		#
-		#self.output_file.write(row)
-		#self.output_file.write('\n')	
-		return row
-
 
 def parse_args():
 	"""Handle the command line arguments.
@@ -68,6 +24,7 @@ def parse_args():
 	
 	return args
 
+
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
@@ -77,25 +34,47 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Se espera un valor booleano')
 
 
-def preprocess(input_dir, output_dir, output_json, roi, resize, keep_ar):
+def preprocess(dir, dir_out, output_json, roi, resize, keep_ar):
+	
+	do_save = (dir_out != None)
 		
-	if output_dir != None and not os.path.exists(output_dir):
-		os.makedirs(output_dir)
-		
-	# Create a pool of processes. By default, one is created for each CPU in your machine.
-	workers = 3
-	with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
-		
-		ip = ImageProcessor( roi, resize, keep_ar, output_dir)
-		image_files = glob.glob( input_dir + '/*.jpg' )
-		total_files = len(image_files)
-		counter = 0
-		for image_file, image_json_row in zip(image_files, executor.map(ip.process_image, image_files)):
-			#print( "Procesada: {}".format(image_file) )
-			counter += 1
-			if not counter % 100:
-				print( "Procesadas: {} de {}".format(counter,total_files) )
+	if do_save and not os.path.exists(dir_out):
+		os.makedirs(dir_out)
+	
+	with open(output_json, 'w') as ff:
+		for file in os.listdir(dir):
+			if file.endswith(".jpg"):
+				image_name = os.path.join(dir, file)
 			
+				#print("Procesando: {}".format(image_name))
+				aux = image_name[image_name.rfind('/')+1:]
+				aux = aux[aux.rfind('\\')+1:]		
+								
+				image = Image.open(image_name)
+
+				if roi != None:
+					image = image.crop((roi))
+				
+				if do_save and keep_ar:
+					image_name_out = dir_out + '/' + aux
+					image.save(image_name_out, format='JPEG')
+				
+				if resize != None:
+					image = image.resize((resize[0], resize[1]), Image.BILINEAR)
+				
+				if do_save and not keep_ar:
+					image_name_out = dir_out + '/' + aux
+					image.save(image_name_out, format='JPEG')
+					
+				resized_handle = BytesIO()
+				image.save(resized_handle, format='JPEG')
+				encoded_contents = base64.b64encode(resized_handle.getvalue()).decode('ascii')
+				
+				# key can be any UTF-8 string, since it goes in a HTTP request.
+				row = json.dumps({'key': aux, 'image_bytes': {'b64': encoded_contents}})
+				
+				ff.write(row)
+				ff.write('\n')
 
 
 if __name__ == '__main__':

@@ -513,6 +513,7 @@ def detections_to_voc_annotation(image_path,
     annotation = E.annotation(
             E.folder('JPEGImages'),
             E.filename(image_name),
+            E.path(image_path),
             E.source(
                 E.database('Unknown')
                 ),
@@ -521,7 +522,8 @@ def detections_to_voc_annotation(image_path,
                 E.height(image_height),
                 E.depth('3'),
                 ),
-            )
+            E.segmented(0)
+            )            
     detecciones_idx = [i for i, s in enumerate(detection_scores) if s >= 0.5]
     for idx in detecciones_idx:
         E = objectify.ElementMaker(annotate=False)
@@ -531,10 +533,10 @@ def detections_to_voc_annotation(image_path,
             E.truncated(0),
             E.difficult(0),
             E.bndbox(
-                E.xmin(detection_boxes[idx][1]),
-                E.ymin(detection_boxes[idx][0]),
-                E.xmax(detection_boxes[idx][3]),
-                E.ymax(detection_boxes[idx][2]),
+                E.xmin(int(image_width*detection_boxes[idx][1])),
+                E.ymin(int(image_height*detection_boxes[idx][0])),
+                E.xmax(int(image_width*detection_boxes[idx][3])),
+                E.ymax(int(image_height*detection_boxes[idx][2])),
                 ),
             )
         annotation.append(instance)
