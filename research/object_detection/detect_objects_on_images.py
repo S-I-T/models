@@ -615,9 +615,12 @@ if __name__ == '__main__':
             fout.write('\t'.join([str(e) for e in row]) + "\n")
 
             if args.output_file is not None:
-                printProgressBar(progress_idx+1, nimages, prefix='Progress:', suffix='Complete', length=50)
+                printProgressBar(progress_idx+1, nimages, 
+                                 prefix='Progress:',
+                                 suffix='Complete',
+                                 length=50)
 
-            if args.output_dir != None:
+            if args.output_dir is not None and len(detecciones_idx) > 0:
                 # Visualization of the results of a detection.
                 visualize_boxes_and_labels_on_image_array(
                         image,
