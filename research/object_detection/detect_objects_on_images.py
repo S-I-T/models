@@ -505,7 +505,8 @@ def detections_to_voc_annotation(image_path,
                                  image_height,
                                  detection_boxes,
                                  detection_classes,
-                                 detection_scores):
+                                 detection_scores,
+                                 category_index):
     image_name = os.path.basename(image_path)
 
     E = objectify.ElementMaker(annotate=False)
@@ -525,7 +526,7 @@ def detections_to_voc_annotation(image_path,
     for idx in detecciones_idx:
         E = objectify.ElementMaker(annotate=False)
         instance = E.object(
-            E.name(detection_classes[idx]['name']),
+            E.name(category_index[detection_classes[idx]]['name']),
             E.pose('Unspecified'),
             E.truncated(0),
             E.difficult(0),
@@ -632,11 +633,12 @@ if __name__ == '__main__':
                         image_height,
                         output_dict['detection_boxes'],
                         output_dict['detection_classes'],
-                        output_dict['detection_scores']
+                        output_dict['detection_scores'],
+                        category_index
                 )
                 etree.ElementTree(annotation).write(
                         os.path.join(
                             args.output_dir,
-                            image_name[:-3]+'xml'))
+                            image_name[:-3]+'xml'), pretty_print=True)
             #plt.imshow(image)
             #plt.show()
