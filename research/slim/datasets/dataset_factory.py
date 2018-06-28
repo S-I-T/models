@@ -23,13 +23,15 @@ from datasets import flowers
 from datasets import imagenet
 from datasets import mnist
 from datasets import trucks
+from datasets import vehicles_kf
 
 datasets_map = {
     'cifar10': cifar10,
     'flowers': flowers,
     'imagenet': imagenet,
     'mnist': mnist,
-	'trucks': trucks
+	'trucks': trucks,
+    'vehicles_kf': vehicles_kf
 }
 
 
