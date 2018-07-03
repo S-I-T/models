@@ -87,7 +87,7 @@ from preprocessing import preprocessing_factory
 
 slim = tf.contrib.slim
 
-model_name_to_variables = {'inception_v3':'InceptionV3','inception_v4':'InceptionV4','resnet_v1_50':'resnet_v1_50','resnet_v1_152':'resnet_v1_152'}
+model_name_to_variables = {'inception_v3':'InceptionV3','inception_v4':'InceptionV4','resnet_v1_50':'resnet_v1_50','resnet_v1_152':'resnet_v1_152','inception_resnet_v2':'inception_resnet_v2'}
 
 preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
 eval_image_size = FLAGS.eval_image_size

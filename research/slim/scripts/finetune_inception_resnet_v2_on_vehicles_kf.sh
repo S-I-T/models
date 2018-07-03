@@ -39,13 +39,16 @@ DATASET_DIR=/root/databases/Vehicles-KF-CLA
 
 # Cuantos pasos entrenar cada fase del modelo
 FINETUNE_STEPS=1000
-FINETUNE_ALL_LAYERS_STEPS=1000
+FINETUNE_ALL_LAYERS_STEPS=2000
 
 # Otras definiciones
 TENSORFLOWDIR=/tensorflow
 BAZEL=bazel
 SLIM_DIR=/root/src/models/research/slim
 
+#Limpieza
+#rm -rf ${DATASET_DIR}/tfrecords
+#rm -rf ${TRAIN_DIR}
 
 cd ${SLIM_DIR}
 
@@ -85,7 +88,10 @@ python train_image_classifier.py \
   --log_every_n_steps=10 \
   --optimizer=rmsprop \
   --weight_decay=0.00004
-  
+ 
+# Ver entrenamiento
+#tensorboard --logdir=$TRAIN_DIR --port=8888
+
 # Run evaluation.
 python eval_image_classifier.py \
   --checkpoint_path=${TRAIN_DIR} \
@@ -114,6 +120,9 @@ python train_image_classifier.py \
   --log_every_n_steps=10 \
   --optimizer=rmsprop \
   --weight_decay=0.00004
+
+# Ver entrenamiento
+#tensorboard --logdir=$TRAIN_DIR/all --port=8888
 
 # Run evaluation.
 python eval_image_classifier.py \
