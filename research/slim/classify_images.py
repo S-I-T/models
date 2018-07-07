@@ -139,63 +139,69 @@ if __name__ == '__main__':
     # We launch a Session
     with tf.Session(graph=graph) as sess:    
         
-        for progress_idx, image_path in enumerate(image_paths):        
-        
-            #x = tf.gfile.FastGFile(fl).read() # You can also use x = open(fl).read()
-            #image_name = os.path.basename(fl)
-            
-            # Cargamos la imagen        
-            image = imageio.imread(image_path)
-            image_np_expanded = np.expand_dims(image, axis=0)        
-    
-            # Corremos la session
-            # Nota: no se necesita inicializar/restaurar nada, 
-            # no hay variables en este grafo, solo constantes harcodeadas
-            y_out = sess.run(y, feed_dict={ x: image_np_expanded })
-            #print(y_out) 
-            
-            # Esto es particular para la clasificacion, en donde 
-            # el tensor de salida son los scores de las clases
-            if num_classes == 0:
-                num_classes = len( y_out[0, 0:] )
-                header = ['image']
-                if args.labels is not None:    
-                    header.extend(['%s' % s for s in labels])
-                else:
-                    header.extend(['class%s' % i for i in range(num_classes)])
-                    labels = [str(i) for i in range(num_classes)]
-                header.append('max_score')
-                header.append('threshold')
-                header.append('predicted_class')
+        for progress_idx, image_path in enumerate(image_paths):  
+            try:        
                 
-                fout.write('\t'.join(header) + "\n")
-            
-            image_name = os.path.basename(image_path)
-            probs = y_out[0, 0:]
-            max_i = np.argmax(probs)
-            row = [image_name]
-            row.extend(probs)
-            row.append(probs[max_i])
-            
-            if args.thresholds is not None:
-                row.append(thresholds[max_i])
-                if probs[max_i] >= thresholds[max_i]:
-                    row.append(labels[max_i])
+                #x = tf.gfile.FastGFile(fl).read() # You can also use x = open(fl).read()
+                #image_name = os.path.basename(fl)
+                
+                # Cargamos la imagen        
+                image = imageio.imread(image_path)
+                image_np_expanded = np.expand_dims(image, axis=0)        
+                
+                # Corremos la session
+                # Nota: no se necesita inicializar/restaurar nada, 
+                # no hay variables en este grafo, solo constantes harcodeadas
+                y_out = sess.run(y, feed_dict={ x: image_np_expanded })
+                #print(y_out) 
+                
+                # Esto es particular para la clasificacion, en donde 
+                # el tensor de salida son los scores de las clases
+                if num_classes == 0:
+                    num_classes = len( y_out[0, 0:] )
+                    header = ['image']
+                    if args.labels is not None:    
+                        header.extend(['%s' % s for s in labels])
+                    else:
+                        header.extend(['class%s' % i for i in range(num_classes)])
+                        labels = [str(i) for i in range(num_classes)]
+                    header.append('max_score')
+                    header.append('threshold')
+                    header.append('predicted_class')
+                    
+                    fout.write('\t'.join(header) + "\n")
+                
+                image_name = os.path.basename(image_path)
+                probs = y_out[0, 0:]
+                max_i = np.argmax(probs)
+                row = [image_name]
+                row.extend(probs)
+                row.append(probs[max_i])
+                
+                if args.thresholds is not None:
+                    row.append(thresholds[max_i])
+                    if probs[max_i] >= thresholds[max_i]:
+                        row.append(labels[max_i])
+                    else:
+                        row.append('unknown')
                 else:
-                    row.append('unknown')
-            else:
-                row.append(0)
-                row.append(labels[max_i])
+                    row.append(0)
+                    row.append(labels[max_i])
+                
+                fout.write('\t'.join([str(e) for e in row]) + "\n")
+                
+                if args.output_dir is not None:
+                    shutil.move(image_path, args.output_dir + '/' + row[-1] + '/' + image_name)
+                    #shutil.copy2(input_dir + '/' + image_name, output_dir + '/' + label + '/' + image_name.replace('.jpg','--({})-({:.5f}).jpg'.format(max_index,max_score)))
+                
+                if args.output_file is not None:
+                    printProgressBar(progress_idx+1, nimages, 
+                                     prefix='Progress:',
+                                     suffix='Complete',
+                                     length=50)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
+                print("error procesando:" + image_path)
             
-            fout.write('\t'.join([str(e) for e in row]) + "\n")
-            
-            if args.output_dir is not None:
-                shutil.move(image_path, args.output_dir + '/' + row[-1] + '/' + image_name)
-                #shutil.copy2(input_dir + '/' + image_name, output_dir + '/' + label + '/' + image_name.replace('.jpg','--({})-({:.5f}).jpg'.format(max_index,max_score)))
-            
-            if args.output_file is not None:
-                printProgressBar(progress_idx+1, nimages, 
-                                 prefix='Progress:',
-                                 suffix='Complete',
-                                 length=50)
         
