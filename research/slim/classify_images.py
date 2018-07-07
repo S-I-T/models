@@ -63,6 +63,32 @@ def read_labels(labels_file):
         labels = [x.strip().split(':')[1] for x in content] 
         return labels
 
+# Print iterations progress
+def printProgressBar(iteration,
+                     total,
+                     prefix='',
+                     suffix='',
+                     decimals=1,
+                     length=100,
+                     fill='#'):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
+    # Print New Line on Complete
+    if iteration == total:
+        print()
 
 if __name__ == '__main__':
 	# Let's allow the user to pass the filename as an argument
@@ -81,11 +107,17 @@ if __name__ == '__main__':
 	# We access the input and output nodes 
 	x = graph.get_tensor_by_name('prefix/' + args.input_tensor + ':0')
 	y = graph.get_tensor_by_name('prefix/' + args.output_tensor + ':0')
+    
+    # Obtenemos los paths de las imagenes a procesar
+    image_paths = [s.strip() for s in open(args.input_file)]
+    nimages = len(image_paths)
 	
 	# Verificamos donde escribir los resultados
-	fout = sys.stdout
-	if args.output_file is not None:
-		fout = open(args.output_file, 'w')
+    fout = sys.stdout
+    if args.output_file is not None:
+        fout = open(args.output_file, 'w')
+        print('')
+        printProgressBar(0, nimages, prefix='Progress:', suffix='Complete', length=50)
 	
 	if args.output_dir is not None:
 		if not os.path.exists(args.output_dir):
@@ -107,9 +139,7 @@ if __name__ == '__main__':
 	# We launch a Session
 	with tf.Session(graph=graph) as sess:	
 		
-		image_paths = [s.strip() for s in open(args.input_file)]
-		
-		for image_path in image_paths:			
+		for progress_idx, image_path in enumerate(image_paths):		
 		
 			#x = tf.gfile.FastGFile(fl).read() # You can also use x = open(fl).read()
 			#image_name = os.path.basename(fl)
@@ -162,5 +192,10 @@ if __name__ == '__main__':
 			if args.output_dir is not None:
 				shutil.move(image_path, args.output_dir + '/' + row[-1] + '/' + image_name)
 				#shutil.copy2(input_dir + '/' + image_name, output_dir + '/' + label + '/' + image_name.replace('.jpg','--({})-({:.5f}).jpg'.format(max_index,max_score)))
-
+            
+            if args.output_file is not None:
+                printProgressBar(progress_idx+1, nimages, 
+                                 prefix='Progress:',
+                                 suffix='Complete',
+                                 length=50)
 		

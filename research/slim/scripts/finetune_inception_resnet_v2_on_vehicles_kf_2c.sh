@@ -32,14 +32,14 @@ MODEL_NAME=inception_resnet_v2
 PRETRAINED_CHECKPOINT_DIR=/root/models/tf-slim/public/${MODEL_NAME}.ckpt
 
 # Where the training (fine-tuned) checkpoint and logs will be saved to.
-TRAIN_DIR=/root/models/tf-slim/train/Vehicles-KF-CLA/${MODEL_NAME}
+TRAIN_DIR=/root/models/tf-slim/train/Vehicles-KF-CLA-2C/${MODEL_NAME}
 
 # Where the dataset is saved to.
-DATASET_DIR=/root/databases/Vehicles-KF-CLA
+DATASET_DIR=/root/databases/Vehicles-KF-CLA-2C
 
 # Cuantos pasos entrenar cada fase del modelo
 FINETUNE_STEPS=1000
-FINETUNE_ALL_LAYERS_STEPS=5100
+FINETUNE_ALL_LAYERS_STEPS=4300
 
 # Otras definiciones
 TENSORFLOWDIR=/tensorflow
