@@ -1,0 +1,16 @@
+item {
+  id: 1
+  name: 'casco'
+}
+item {
+  id: 2
+  name: 'sin casco'
+}
+item {
+  id: 3
+  name: 'chaleco'
+}
+item {
+  id: 4
+  name: 'sin chaleco'
+}
