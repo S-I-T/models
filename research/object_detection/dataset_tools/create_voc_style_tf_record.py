@@ -36,7 +36,7 @@ flags.DEFINE_boolean('ignore_difficult_instances', False, 'Whether to ignore '
                      'difficult instances')
 FLAGS = flags.FLAGS
 
-SETS = ['train', 'val', 'trainval', 'test']
+SETS = ['train', 'val', 'trainval', 'test', 'all']
 
 
 def dict_to_tf_example(data,
