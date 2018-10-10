@@ -1,0 +1,19 @@
+item {
+  id: 1
+  name: 'concrete_truck'
+}
+
+item {
+  id: 2
+  name: 'dump_truck'
+}
+
+item {
+  id: 3
+  name: 'crane_truck'
+}
+
+item {
+  id: 4
+  name: 'water_tank_truck'
+}
