@@ -38,6 +38,10 @@ def define_wide_deep_flags():
   """Add supervised learning flags, as well as wide-deep model type."""
   flags_core.define_base()
   flags_core.define_benchmark()
+  flags_core.define_performance(
+      num_parallel_calls=False, inter_op=True, intra_op=True,
+      synthetic_data=False, max_train_steps=False, dtype=False,
+      all_reduce_alg=False)
 
   flags.adopt_module_key_flags(flags_core)
 
@@ -48,14 +52,6 @@ def define_wide_deep_flags():
   flags.DEFINE_boolean(
       name="download_if_missing", default=True, help=flags_core.help_wrap(
           "Download data to data_dir if it is not already present."))
-  flags.DEFINE_integer(
-      name="inter_op_parallelism_threads", short_name="inter", default=0,
-      help="Number of threads to use for inter-op parallelism. "
-           "If left as default value of 0, the system will pick an appropriate number.")
-  flags.DEFINE_integer(
-      name="intra_op_parallelism_threads", short_name="intra", default=0,
-      help="Number of threads to use for intra-op parallelism. "
-           "If left as default value of 0, the system will pick an appropriate number.")
 
 
 def export_model(model, model_type, export_dir, model_column_fn):
@@ -77,7 +73,8 @@ def export_model(model, model_type, export_dir, model_column_fn):
   feature_spec = tf.feature_column.make_parse_example_spec(columns)
   example_input_fn = (
       tf.estimator.export.build_parsing_serving_input_receiver_fn(feature_spec))
-  model.export_savedmodel(export_dir, example_input_fn)
+  model.export_savedmodel(export_dir, example_input_fn,
+                          strip_default_attrs=True)
 
 
 def run_loop(name, train_input_fn, eval_input_fn, model_column_fn,
