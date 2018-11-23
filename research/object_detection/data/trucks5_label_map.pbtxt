@@ -1,24 +1,29 @@
 item {
   id: 1
-  name: 'concrete-mixer'
+  name: 'concrete_truck'
+  display_name: 'CONCRETO'
 }
 
 item {
   id: 2
-  name: 'dump-truck'
+  name: 'dump_truck'
+  display_name: 'TOLVA'
 }
 
 item {
   id: 3
-  name: 'water-tank-truck'
+  name: 'crane_truck'
+  display_name: 'GRUA'
 }
 
 item {
   id: 4
-  name: 'crane-truck'
+  name: 'water_tank_truck'
+  display_name: 'CISTERNA'
 }
 
 item {
   id: 5
-  name: 'other-truck'
+  name: 'flatbed_truck'
+  display_name: 'CAMA'
 }
