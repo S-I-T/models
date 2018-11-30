@@ -1,16 +1,20 @@
 item {
   id: 1
   name: 'casco'
+  display_name: 'casco'
 }
 item {
   id: 2
   name: 'sin casco'
+  display_name: 'sin casco'
 }
 item {
   id: 3
   name: 'chaleco'
+  display_name: 'chaleco'
 }
 item {
   id: 4
   name: 'sin chaleco'
+  display_name: 'sin chaleco'
 }
