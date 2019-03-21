@@ -167,6 +167,7 @@ def process_detections(detections_record, categories):
                     confusion_matrix[confusion_matrix.shape[0] - 1][detection_classes[i] - 1] += 1
                     # Objeto detectado incorrectamente
                     errors["false_detected"].append({"box": detection_boxes[i], "class": detection_classes[i]})
+                    has_errors = True
 
             if has_errors and FLAGS.output_dir is not None:
                 save_incorrect_example(example, groundtruth_boxes, groundtruth_classes, detection_boxes, detection_classes, categories, errors)
@@ -213,4 +214,7 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    tf.app.run(main)
+    try:
+        tf.app.run(main)
+    except SystemExit:
+        pass
