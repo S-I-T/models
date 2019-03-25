@@ -101,7 +101,7 @@ def dict_to_tf_example(data,
       ymax.append(float(obj['bndbox']['ymax']) / height)
       classes_text.append(obj['name'].encode('utf8'))
       classes.append(label_map_dict[obj['name']])
-      truncated.append(int(obj['truncated']))
+      truncated.append(int(obj['truncated']) if 'truncated' in obj else 0)
       poses.append(obj['pose'].encode('utf8'))
 
   example = tf.train.Example(features=tf.train.Features(feature={
