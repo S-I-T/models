@@ -1,0 +1,30 @@
+item {
+  name: "person"
+  id: 1
+  display_name: "person"
+}
+item {
+  name: "bicycle"
+  id: 2
+  display_name: "bicycle"
+}
+item {
+  name: "car"
+  id: 3
+  display_name: "car"
+}
+item {
+  name: "motorcycle"
+  id: 4
+  display_name: "motorcycle"
+}
+item {
+  name: "bus"
+  id: 5
+  display_name: "bus"
+}
+item {
+  name: "truck"
+  id: 6
+  display_name: "truck"
+}
