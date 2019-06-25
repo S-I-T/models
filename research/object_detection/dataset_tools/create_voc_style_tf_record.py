@@ -144,9 +144,10 @@ def main(_):
     if idx % 100 == 0:
       logging.info('On image %d of %d', idx, len(examples_list))
     path = os.path.join(annotations_dir, example + '.xml')
+    print("Procesando:"+path)
     with tf.gfile.GFile(path, 'r') as fid:
       xml_str = fid.read()
-    xml = etree.fromstring(xml_str)
+    xml = etree.fromstring(bytes(xml_str, encoding='utf-8'))
     data = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
 
     tf_example = dict_to_tf_example(data, FLAGS.data_dir, label_map_dict,
