@@ -24,6 +24,7 @@ from datasets import imagenet
 from datasets import mnist
 from datasets import trucks
 from datasets import vehicles_kf
+from datasets import ocupacion_copec
 
 datasets_map = {
     'cifar10': cifar10,
@@ -31,7 +32,8 @@ datasets_map = {
     'imagenet': imagenet,
     'mnist': mnist,
 	'trucks': trucks,
-    'vehicles_kf': vehicles_kf
+    'vehicles_kf': vehicles_kf,
+    'ocupacion_copec': ocupacion_copec,
 }
 
 
