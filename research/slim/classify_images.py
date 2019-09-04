@@ -20,7 +20,7 @@ import shutil
 #    -i input_image \
 #    -o InceptionV3/Predictions/Reshape_1 \
 #    -f images.txt \
-#    -r predictions.txt
+#    -r predictions.txt 
 
 
 
