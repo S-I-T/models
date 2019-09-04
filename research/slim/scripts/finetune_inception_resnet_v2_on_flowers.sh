@@ -24,17 +24,17 @@
 # ./slim/scripts/finetune_inception_resnet_v2_on_flowers.sh
 set -e
 
-# Model to train
-MODEL_NAME=inception_resnet_v2
+# Where the pre-trained Inception Resnet V2 checkpoint is saved to.
+PRETRAINED_CHECKPOINT_DIR=/tmp/checkpoints
 
 # Where the pre-trained Inception Resnet V2 checkpoint is saved to.
-PRETRAINED_CHECKPOINT_DIR=/root/models/tf-slim/public
+MODEL_NAME=inception_resnet_v2
 
 # Where the training (fine-tuned) checkpoint and logs will be saved to.
-TRAIN_DIR=/root/models/tf-slim/train/Flowers/${MODEL_NAME}
+TRAIN_DIR=/tmp/flowers-models/${MODEL_NAME}
 
 # Where the dataset is saved to.
-DATASET_DIR=/root/databases/Flowers/
+DATASET_DIR=/tmp/flowers
 
 # Download the pre-trained checkpoint.
 if [ ! -d "$PRETRAINED_CHECKPOINT_DIR" ]; then
@@ -43,7 +43,7 @@ fi
 if [ ! -f ${PRETRAINED_CHECKPOINT_DIR}/${MODEL_NAME}.ckpt ]; then
   wget http://download.tensorflow.org/models/inception_resnet_v2_2016_08_30.tar.gz
   tar -xvf inception_resnet_v2_2016_08_30.tar.gz
-  mv inception_resnet_v2_2016_08_30.ckpt ${PRETRAINED_CHECKPOINT_DIR}/${MODEL_NAME}.ckpt
+  mv inception_resnet_v2.ckpt ${PRETRAINED_CHECKPOINT_DIR}/${MODEL_NAME}.ckpt
   rm inception_resnet_v2_2016_08_30.tar.gz
 fi
 
