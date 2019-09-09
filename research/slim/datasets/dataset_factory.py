@@ -22,22 +22,20 @@ from datasets import cifar10
 from datasets import flowers
 from datasets import imagenet
 from datasets import mnist
-from datasets import trucks
-from datasets import vehicles_kf
-from datasets import ocupacion_copec
+from datasets import visualwakewords
+from datasets import generic
 
 datasets_map = {
     'cifar10': cifar10,
     'flowers': flowers,
     'imagenet': imagenet,
     'mnist': mnist,
-	'trucks': trucks,
-    'vehicles_kf': vehicles_kf,
-    'ocupacion_copec': ocupacion_copec,
+    'visualwakewords': visualwakewords,
+	'generic': generic
 }
 
 
-def get_dataset(name, split_name, dataset_dir, file_pattern=None, reader=None):
+def get_dataset(name, split_name, dataset_dir, file_pattern=None, reader=None, perc_validation=None, labels_filename=None):
   """Given a dataset name and a split_name returns a Dataset.
 
   Args:
@@ -56,6 +54,14 @@ def get_dataset(name, split_name, dataset_dir, file_pattern=None, reader=None):
   """
   if name not in datasets_map:
     raise ValueError('Name of dataset unknown %s' % name)
+  if name == 'generic':
+    return datasets_map[name].get_split(
+        split_name,
+        dataset_dir,
+        file_pattern,
+        reader,
+		perc_validation,
+		labels_filename)
   return datasets_map[name].get_split(
       split_name,
       dataset_dir,

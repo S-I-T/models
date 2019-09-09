@@ -110,6 +110,12 @@ tf.app.flags.DEFINE_integer(
 tf.app.flags.DEFINE_bool('write_text_graphdef', False,
                          'Whether to write a text version of graphdef.')
 
+tf.app.flags.DEFINE_integer('perc_validation', None,
+    'Percentage of samples to reserve for validation in generic database. Defaults to 20.')
+
+tf.app.flags.DEFINE_string('labels_filename', None,
+    'Labels file name in generic database. Defaults to labels.txt .')
+
 FLAGS = tf.app.flags.FLAGS
 
 
@@ -121,8 +127,7 @@ def main(_):
         'Number of frames must be specified for video models with --num_frames')
   tf.logging.set_verbosity(tf.logging.INFO)
   with tf.Graph().as_default() as graph:
-    dataset = dataset_factory.get_dataset(FLAGS.dataset_name, 'train',
-                                          FLAGS.dataset_dir)
+    dataset = dataset_factory.get_dataset(FLAGS.dataset_name, 'train', FLAGS.dataset_dir, perc_validation=FLAGS.perc_validation, labels_filename=FLAGS.labels_filename)
     network_fn = nets_factory.get_network_fn(
         FLAGS.model_name,
         num_classes=(dataset.num_classes - FLAGS.labels_offset),

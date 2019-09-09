@@ -39,21 +39,34 @@ import tensorflow as tf
 from datasets import download_and_convert_cifar10
 from datasets import download_and_convert_flowers
 from datasets import download_and_convert_mnist
-from datasets import download_and_convert_trucks
-from datasets import download_and_convert_vehicles_kf
-from datasets import download_and_convert_ocupacion_copec
+from datasets import download_and_convert_generic
 
 FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string(
     'dataset_name',
     None,
-    'The name of the dataset to convert, one of "cifar10", "flowers", "mnist".')
+    'The name of the dataset to convert, one of "cifar10", "flowers", "mnist", "generic"')
 
 tf.app.flags.DEFINE_string(
     'dataset_dir',
     None,
     'The directory where the output TFRecords and temporary files are saved.')
+
+tf.app.flags.DEFINE_integer(
+    'perc_validation',
+	20,
+    'Percentage of samples to reserve for validation in generic database. Defaults to 20.')
+
+tf.app.flags.DEFINE_string(
+    'labels_filename',
+	'labels.txt',
+    'Labels file name in generic database. Defaults to labels.txt .')
+
+tf.app.flags.DEFINE_integer(
+    'num_shards',
+	5,
+    'Number of subdivisions for tfrecords files in generic database. Defaults to 5.')
 
 
 def main(_):
@@ -68,12 +81,8 @@ def main(_):
     download_and_convert_flowers.run(FLAGS.dataset_dir)
   elif FLAGS.dataset_name == 'mnist':
     download_and_convert_mnist.run(FLAGS.dataset_dir)
-  elif FLAGS.dataset_name == 'trucks':
-    download_and_convert_trucks.run(FLAGS.dataset_dir)
-  elif FLAGS.dataset_name == 'vehicles_kf':
-    download_and_convert_vehicles_kf.run(FLAGS.dataset_dir)
-  elif FLAGS.dataset_name == 'ocupacion_copec':
-    download_and_convert_ocupacion_copec.run(FLAGS.dataset_dir)
+  elif FLAGS.dataset_name == 'generic':
+    download_and_convert_generic.run(FLAGS.dataset_dir, perc_validation=FLAGS.perc_validation, labels_filename=FLAGS.labels_filename, num_shards=FLAGS.num_shards)
   else:
     raise ValueError(
         'dataset_name [%s] was not recognized.' % FLAGS.dataset_name)

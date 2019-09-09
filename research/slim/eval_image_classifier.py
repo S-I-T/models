@@ -82,6 +82,12 @@ tf.app.flags.DEFINE_integer(
 tf.app.flags.DEFINE_bool(
     'quantize', False, 'whether to use quantized graph or not.')
 
+tf.app.flags.DEFINE_integer('perc_validation', None,
+    'Percentage of samples to reserve for validation in generic database. Defaults to 20.')
+
+tf.app.flags.DEFINE_string('labels_filename', None,
+    'Labels file name in generic database. Defaults to labels.txt .')
+
 FLAGS = tf.app.flags.FLAGS
 
 
@@ -97,7 +103,7 @@ def main(_):
     # Select the dataset #
     ######################
     dataset = dataset_factory.get_dataset(
-        FLAGS.dataset_name, FLAGS.dataset_split_name, FLAGS.dataset_dir)
+        FLAGS.dataset_name, FLAGS.dataset_split_name, FLAGS.dataset_dir, perc_validation=FLAGS.perc_validation, labels_filename=FLAGS.labels_filename)
 
     ####################
     # Select the model #
