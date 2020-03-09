@@ -14,6 +14,7 @@ import hashlib
 import io
 import logging
 import os
+import numpy as np
 
 from lxml import etree
 import PIL.Image
@@ -34,6 +35,7 @@ flags.DEFINE_string('label_map_path', 'data/pascal_label_map.pbtxt',
                     'Path to label map proto')
 flags.DEFINE_boolean('ignore_difficult_instances', False, 'Whether to ignore '
                      'difficult instances')
+flags.DEFINE_integer('n_shards', 5, 'Number of output file divisions (shards)')
 FLAGS = flags.FLAGS
 
 SETS = ['train', 'val', 'trainval', 'test', 'all']
@@ -100,8 +102,8 @@ def dict_to_tf_example(data,
       ymin.append(float(obj['bndbox']['ymin']) / height)
       xmax.append(float(obj['bndbox']['xmax']) / width)
       ymax.append(float(obj['bndbox']['ymax']) / height)
-      classes_text.append(obj['name'].encode('utf8'))
-      classes.append(label_map_dict[obj['name']])
+      classes_text.append(obj['name'].replace(' ', '_').encode('utf8'))
+      classes.append(label_map_dict[obj['name'].replace(' ', '_')])
       truncated.append(int(obj['truncated']) if 'truncated' in obj else 0)
       poses.append(obj['pose'].encode('utf8') if 'pose' in obj else 'Unspecified'.encode('utf8'))
 
@@ -127,35 +129,62 @@ def dict_to_tf_example(data,
   }))
   return example
 
-
-def main(_):
-  if FLAGS.set not in SETS:
-    raise ValueError('set must be in : {} '.format(SETS))
-
-  data_dir = FLAGS.data_dir
-  writer = tf.python_io.TFRecordWriter(FLAGS.output_path)
+def writing_loop(FLAGS, writer, data_batch, data_dir):
   label_map_dict = label_map_util.get_label_map_dict(FLAGS.label_map_path)
-
-  logging.info('Reading from dataset in: ', data_dir)
-  examples_path = os.path.join(data_dir, 'ImageSets', 'Main', FLAGS.set + '.txt')
-  annotations_dir = os.path.join(data_dir, FLAGS.annotations_dir)
-  examples_list = dataset_util.read_examples_list(examples_path)
-  for idx, example in enumerate(examples_list):
+  for idx, example in enumerate(data_batch):
     if idx % 100 == 0:
-      logging.info('On image %d of %d', idx, len(examples_list))
+      logging.info('On image %d of %d', idx, len(data_batch))
+    annotations_dir = os.path.join(data_dir[idx], FLAGS.annotations_dir)
     path = os.path.join(annotations_dir, example + '.xml')
-    print("Procesando:"+path)
+    # print("Procesando:"+path)
     with tf.gfile.GFile(path, 'r') as fid:
       xml_str = fid.read()
     xml = etree.fromstring(bytes(xml_str, encoding='utf-8'))
     data = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
 
-    tf_example = dict_to_tf_example(data, FLAGS.data_dir, label_map_dict,
-                                    FLAGS.ignore_difficult_instances)
+    tf_example = dict_to_tf_example(data, data_dir[idx], label_map_dict,
+                                  FLAGS.ignore_difficult_instances)
     writer.write(tf_example.SerializeToString())
 
-  writer.close()
+def batch(iterable, n=2):
+  l = len(iterable)
+  for ndx in range(0, l, n):
+      yield iterable[ndx:min(ndx + n, l)]
 
+def main(_):
+  if FLAGS.set not in SETS:
+    raise ValueError('set must be in : {} '.format(SETS))
+  label_map_dict = label_map_util.get_label_map_dict(FLAGS.label_map_path)
+  data_dirs = FLAGS.data_dir.split(':')
+  output_path = FLAGS.output_path
+  n_shards = FLAGS.n_shards
+  total_examples = []
+  dirs = []
+  # Loop for merging the paths
+  for data_dir in data_dirs:
+    #logging.info('Reading from dataset in: ', data_dir)
+    examples_path = os.path.join(data_dir, 'ImageSets', 'Main', FLAGS.set + '.txt')
+    examples_list = dataset_util.read_examples_list(examples_path)
+    for example in examples_list:
+      total_examples.append(example)
+      dirs.append(data_dir)
+  #Determining the batch size for the tfrecords
+  batch_size = len(total_examples)//n_shards
+  rest = len(total_examples)%n_shards
+
+  #Writing the tfrecords
+  part_num=0
+  dirs_iter = batch(dirs, batch_size)
+  for data_batch in batch(total_examples, batch_size):
+    dirs_batch = next(dirs_iter)
+    if rest==0:  
+      writer = tf.python_io.TFRecordWriter(output_path + '-{:05d}-of-{:05d}'.format(part_num, n_shards))
+    else:
+      writer = tf.python_io.TFRecordWriter(output_path + '-{:05d}-of-{:05d}'.format(part_num, n_shards+1))
+    writing_loop(FLAGS, writer, data_batch, dirs_batch)
+    writer.close()
+    part_num=part_num+1
+    
 
 if __name__ == '__main__':
   tf.app.run()

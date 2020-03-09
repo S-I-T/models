@@ -15,7 +15,8 @@
 
 """LSTMSSDFeatureExtractor for MobilenetV1 features."""
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+from tensorflow.contrib import slim as contrib_slim
 from tensorflow.python.framework import ops as tf_ops
 from lstm_object_detection.lstm import lstm_cells
 from lstm_object_detection.lstm import rnn_decoder
@@ -26,7 +27,7 @@ from object_detection.utils import ops
 from object_detection.utils import shape_utils
 from nets import mobilenet_v1
 
-slim = tf.contrib.slim
+slim = contrib_slim
 
 
 class LSTMSSDMobileNetV1FeatureExtractor(
@@ -65,8 +66,15 @@ class LSTMSSDMobileNetV1FeatureExtractor(
       lstm_state_depth: An integter of the depth of the lstm state.
     """
     super(LSTMSSDMobileNetV1FeatureExtractor, self).__init__(
-        is_training, depth_multiplier, min_depth, pad_to_multiple,
-        conv_hyperparams_fn, reuse_weights, use_explicit_padding, use_depthwise,
+        is_training=is_training,
+        depth_multiplier=depth_multiplier,
+        min_depth=min_depth,
+        pad_to_multiple=pad_to_multiple,
+        conv_hyperparams_fn=conv_hyperparams_fn,
+        reuse_weights=reuse_weights,
+        use_explicit_padding=use_explicit_padding,
+        use_depthwise=use_depthwise,
+        override_base_feature_extractor_hyperparams=
         override_base_feature_extractor_hyperparams)
     self._feature_map_layout = {
         'from_layer': ['Conv2d_13_pointwise_lstm', '', '', '', ''],

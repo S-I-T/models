@@ -110,7 +110,7 @@ def process_record_dataset(dataset,
   # Operations between the final prefetch and the get_next call to the iterator
   # will happen synchronously during run time. We prefetch here again to
   # background all of the above processing work and keep it out of the
-  # critical training path. Setting buffer_size to tf.contrib.data.AUTOTUNE
+  # critical training path. Setting buffer_size to tf.data.experimental.AUTOTUNE
   # allows DistributionStrategies to adjust how many batches to fetch based
   # on how many devices are present.
   dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
@@ -445,7 +445,8 @@ def resnet_model_fn(features, labels, mode, model_class,
     tf.compat.v1.summary.scalar('learning_rate', learning_rate)
 
     if flags.FLAGS.enable_lars:
-      optimizer = tf.contrib.opt.LARSOptimizer(
+      from tensorflow.contrib import opt as contrib_opt  # pylint: disable=g-import-not-at-top
+      optimizer = contrib_opt.LARSOptimizer(
           learning_rate,
           momentum=momentum,
           weight_decay=weight_decay,
@@ -562,7 +563,6 @@ def resnet_main(
   distribution_strategy = distribution_utils.get_distribution_strategy(
       distribution_strategy=flags_obj.distribution_strategy,
       num_gpus=flags_core.get_num_gpus(flags_obj),
-      num_workers=num_workers,
       all_reduce_alg=flags_obj.all_reduce_alg,
       num_packs=flags_obj.num_packs)
 

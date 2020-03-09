@@ -43,7 +43,7 @@ In both datasets, the timestamp is represented in seconds since midnight Coordin
 ### Download and preprocess dataset
 To download the dataset, please install Pandas package first. Then issue the following command:
 ```
-python ../datasets/movielens.py
+python movielens.py
 ```
 Arguments:
   * `--data_dir`: Directory where to download and save the preprocessed data. By default, it is `/tmp/movielens-data/`.
@@ -68,4 +68,4 @@ Arguments:
   * `--data_dir`: This should be set to the same directory given to the `data_download`'s `data_dir` argument.
   * `--dataset`: The dataset name to be downloaded and preprocessed. By default, it is `ml-1m`.
 
-There are other arguments about models and training process. Use the `--help` or `-h` flag to get a full list of possible arguments with detailed descriptions.
+There are other arguments about models and training process. Refer to the [Flags package](https://abseil.io/docs/python/guides/flags) documentation or use the `--helpfull` flag to get a full list of possible arguments with detailed descriptions.

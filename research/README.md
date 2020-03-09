@@ -5,6 +5,10 @@ This folder contains machine learning models implemented by researchers in
 respective authors. To propose a model for inclusion, please submit a pull
 request.
 
+**Note: some research models are stale and have not updated to the latest
+TensorFlow yet. If users have trouble with TF 2.x for research models,
+please consider TF 1.15.**
+
 ## Models
 
 -   [adversarial_crypto](adversarial_crypto): protecting communications with
@@ -28,12 +32,9 @@ request.
 -   [deep_speech](deep_speech): automatic speech recognition.
 -   [deeplab](deeplab): deep labeling for semantic image segmentation.
 -   [delf](delf): deep local features for image matching and retrieval.
--   [differential_privacy](differential_privacy): differential privacy for training
-    data.
 -   [domain_adaptation](domain_adaptation): domain separation networks.
 -   [fivo](fivo): filtering variational objectives for training generative
     sequence models.
--   [gan](gan): generative adversarial networks.
 -   [im2txt](im2txt): image-to-text neural network for image captioning.
 -   [inception](inception): deep convolutional networks for computer vision.
 -   [keypointnet](keypointnet): discovery of latent 3D keypoints via end-to-end
@@ -66,7 +67,6 @@ request.
     preserving (real NVP) transformations.
 -   [rebar](rebar): low-variance, unbiased gradient estimates for discrete
     latent variable models.
--   [resnet](resnet): deep and wide residual networks.
 -   [seq2species](seq2species): deep learning solution for read-level taxonomic
     classification.
 -   [skip_thoughts](skip_thoughts): recurrent neural network sentence-to-vector
@@ -76,7 +76,6 @@ request.
     using a Deep RNN.
 -   [struct2depth](struct2depth): unsupervised learning of depth and ego-motion.
 -   [swivel](swivel): the Swivel algorithm for generating word embeddings.
--   [syntaxnet](syntaxnet): neural models of natural language syntax.
 -   [tcn](tcn): Self-supervised representation learning from multi-view video.
 -   [textsum](textsum): sequence-to-sequence with attention model for text
     summarization.

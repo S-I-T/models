@@ -15,7 +15,8 @@
 
 """LSTDInterleavedFeatureExtractor which interleaves multiple MobileNet V2."""
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+from tensorflow.contrib import slim
 
 from tensorflow.python.framework import ops as tf_ops
 from lstm_object_detection.lstm import lstm_cells
@@ -27,8 +28,6 @@ from object_detection.utils import ops
 from object_detection.utils import shape_utils
 from nets.mobilenet import mobilenet
 from nets.mobilenet import mobilenet_v2
-
-slim = tf.contrib.slim
 
 
 class LSTMSSDInterleavedMobilenetV2FeatureExtractor(
@@ -65,8 +64,15 @@ class LSTMSSDInterleavedMobilenetV2FeatureExtractor(
         `conv_hyperparams_fn`.
     """
     super(LSTMSSDInterleavedMobilenetV2FeatureExtractor, self).__init__(
-        is_training, depth_multiplier, min_depth, pad_to_multiple,
-        conv_hyperparams_fn, reuse_weights, use_explicit_padding, use_depthwise,
+        is_training=is_training,
+        depth_multiplier=depth_multiplier,
+        min_depth=min_depth,
+        pad_to_multiple=pad_to_multiple,
+        conv_hyperparams_fn=conv_hyperparams_fn,
+        reuse_weights=reuse_weights,
+        use_explicit_padding=use_explicit_padding,
+        use_depthwise=use_depthwise,
+        override_base_feature_extractor_hyperparams=
         override_base_feature_extractor_hyperparams)
     # RANDOM_SKIP_SMALL means the training policy is random and the small model
     # does not update state during training.
@@ -241,7 +247,7 @@ class LSTMSSDInterleavedMobilenetV2FeatureExtractor(
                          'not equal!')
 
     with slim.arg_scope(self._conv_hyperparams_fn()):
-      with tf.variable_scope('LSTM', reuse=self._reuse_weights) as lstm_scope:
+      with tf.variable_scope('LSTM', reuse=self._reuse_weights):
         output_size = (large_base_feature_shape[1], large_base_feature_shape[2])
         lstm_cell, init_state, step = self.create_lstm_cell(
             batch_size, output_size, state_saver, state_name)
@@ -257,9 +263,10 @@ class LSTMSSDInterleavedMobilenetV2FeatureExtractor(
             step,
             selection_strategy=self._interleave_method,
             is_training=self._is_training,
+            is_quantized=self._is_quantized,
             pre_bottleneck=self._pre_bottleneck,
             flatten_state=self._flatten_state,
-            scope=lstm_scope)
+            scope=None)
         self._states_out = states_out
 
       batcher_ops = None

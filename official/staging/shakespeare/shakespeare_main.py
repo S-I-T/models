@@ -22,7 +22,7 @@ import functools
 import os
 
 # pylint: disable=wrong-import-order
-from absl import app as absl_app
+from absl import app
 from absl import flags
 import numpy as np
 import tensorflow as tf
@@ -57,9 +57,9 @@ def define_flags():
                                 intra_op=False,
                                 synthetic_data=False,
                                 max_train_steps=False,
-                                dtype=False,
-                                enable_xla=True,
-                                force_v2_in_keras_compile=True)
+                                dtype=True,
+                                loss_scale=True,
+                                enable_xla=True)
 
   flags_core.set_defaults(train_epochs=43,
                           batch_size=64)
@@ -74,6 +74,8 @@ def define_flags():
   flags.DEFINE_integer(
       name='predict_length', default=1000,
       help='Length of the predicted text including the context.')
+  flags.DEFINE_integer(name='train_steps', default=None,
+                       help='Overrides train_steps per epoch if not None.')
   flags.DEFINE_integer(
       name='log_steps', default=100,
       help='For every log_steps, we log the timing information such as '
@@ -138,15 +140,8 @@ def build_model(vocab_size,
   Returns:
     A Keras Model.
   """
-  # In V1 there is a separate class for CuDNN. In V2 the LSTM class will use
-  # CuDNN automatically if applicable.
-  if use_cudnn and not keras_utils.is_v2_0():
-    LSTM = tf.compat.v1.CuDNNLSTM
-  else:
-    # The LSTM call was rewritten to be more efficient in 2.0. However because
-    # we want to compare the performance of the two runtimes, we force both
-    # V1 and V2 to use the more efficient implementation.
-    LSTM = functools.partial(tf.keras.layers.LSTM, implementation=2)
+  assert keras_utils.is_v2_0()
+  LSTM = functools.partial(tf.keras.layers.LSTM, implementation=2)
 
   # By indirecting the activation through a lambda layer, the logic to dispatch
   # to CuDNN in V2 doesn't trigger and we force the LSTM to run in non-CuDNN
@@ -163,7 +158,8 @@ def build_model(vocab_size,
            return_sequences=True,
            stateful=stateful,
            recurrent_initializer='glorot_uniform'),
-      tf.keras.layers.Dense(vocab_size, activation='softmax')])
+      tf.keras.layers.Dense(vocab_size),
+      tf.keras.layers.Softmax(dtype=tf.float32)])
 
 
 def train_model(flags_obj, dataset, vocab_size, strategy, checkpoint_dir=None):
@@ -179,19 +175,24 @@ def train_model(flags_obj, dataset, vocab_size, strategy, checkpoint_dir=None):
   Returns:
     The training history and callbacks.
   """
-  train_steps = BATCHES_PER_EPOCH // flags_obj.batch_size
+  if flags_obj.train_steps:
+    train_steps = flags_obj.train_steps
+  else:
+    train_steps = BATCHES_PER_EPOCH // flags_obj.batch_size
   strategy_scope = distribution_utils.get_strategy_scope(strategy)
 
   with strategy_scope:
     model = build_model(vocab_size=vocab_size, batch_size=flags_obj.batch_size,
                         use_cudnn=flags_obj.cudnn)
+
+   # When keras_use_ctl is False, Model.fit() automatically applies
+   # loss scaling so we don't need to create a LossScaleOptimizer.
     model.compile(
         optimizer=tf.keras.optimizers.Adam(),
         loss=tf.keras.losses.CategoricalCrossentropy(),
         metrics=[tf.keras.metrics.Recall(top_k=1, name='RecallAt1'),
                  tf.keras.metrics.Recall(top_k=5, name='RecallAt5')],
-        run_eagerly=flags_obj.run_eagerly,
-        experimental_run_tf_function=flags_obj.force_v2_in_keras_compile)
+        run_eagerly=flags_obj.run_eagerly)
 
   callbacks = []
   if checkpoint_dir:
@@ -267,6 +268,13 @@ def run(flags_obj):
         'https://storage.googleapis.com/download.tensorflow.org/data/'
         'shakespeare.txt')
 
+  if flags_obj.dtype == 'fp16':
+    policy = tf.keras.mixed_precision.experimental.Policy(
+        'mixed_float16',
+        loss_scale=flags_core.get_loss_scale(flags_obj,
+                                             default_for_fp16='dynamic'))
+    tf.keras.mixed_precision.experimental.set_policy(policy)
+
   keras_utils.set_session_config(
       enable_eager=flags_obj.enable_eager,
       enable_xla=flags_obj.enable_xla)
@@ -305,4 +313,4 @@ def main(_):
 
 if __name__ == '__main__':
   define_flags()
-  absl_app.run(main)
+  app.run(main)

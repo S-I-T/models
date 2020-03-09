@@ -54,7 +54,7 @@ _SHUFFLE_BUFFER = 10000
 _R_MEAN = 123.68
 _G_MEAN = 116.78
 _B_MEAN = 103.94
-_CHANNEL_MEANS = [_R_MEAN, _G_MEAN, _B_MEAN]
+CHANNEL_MEANS = [_R_MEAN, _G_MEAN, _B_MEAN]
 
 # The lower bound for the smallest side of the image for aspect-preserving
 # resizing. For example, if an image is 500 x 1000, it will be resized to
@@ -67,7 +67,6 @@ def process_record_dataset(dataset,
                            batch_size,
                            shuffle_buffer,
                            parse_record_fn,
-                           num_epochs=1,
                            dtype=tf.float32,
                            datasets_num_private_threads=None,
                            drop_remainder=False,
@@ -83,7 +82,6 @@ def process_record_dataset(dataset,
       time and use less memory.
     parse_record_fn: A function that takes a raw record and returns the
       corresponding (image, label) pair.
-    num_epochs: The number of epochs to repeat the dataset.
     dtype: Data type to use for images/features.
     datasets_num_private_threads: Number of threads for a private
       threadpool created for all datasets computation.
@@ -104,20 +102,11 @@ def process_record_dataset(dataset,
     logging.info(
         'datasets_num_private_threads: %s', datasets_num_private_threads)
 
-  # Disable intra-op parallelism to optimize for throughput instead of latency.
-  options = tf.data.Options()
-  options.experimental_threading.max_intra_op_parallelism = 1
-  dataset = dataset.with_options(options)
-
-  # Prefetches a batch at a time to smooth out the time taken to load input
-  # files for shuffling and processing.
-  dataset = dataset.prefetch(buffer_size=batch_size)
   if is_training:
     # Shuffles records before repeating to respect epoch boundaries.
     dataset = dataset.shuffle(buffer_size=shuffle_buffer)
-
-  # Repeats the dataset for the number of epochs to train.
-  dataset = dataset.repeat(num_epochs)
+    # Repeats the dataset for the number of epochs to train.
+    dataset = dataset.repeat()
 
   # Parses the raw records into images and labels.
   dataset = dataset.map(
@@ -128,15 +117,14 @@ def process_record_dataset(dataset,
   # Operations between the final prefetch and the get_next call to the iterator
   # will happen synchronously during run time. We prefetch here again to
   # background all of the above processing work and keep it out of the
-  # critical training path. Setting buffer_size to tf.contrib.data.AUTOTUNE
+  # critical training path. Setting buffer_size to tf.data.experimental.AUTOTUNE
   # allows DistributionStrategies to adjust how many batches to fetch based
   # on how many devices are present.
   dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
-  if tf_data_experimental_slack:
-    options = tf.data.Options()
-    options.experimental_slack = True
-    dataset = dataset.with_options(options)
+  options = tf.data.Options()
+  options.experimental_slack = tf_data_experimental_slack
+  dataset = dataset.with_options(options)
 
   return dataset
 
@@ -153,7 +141,7 @@ def get_filenames(is_training, data_dir):
         for i in range(128)]
 
 
-def _parse_example_proto(example_serialized):
+def parse_example_proto(example_serialized):
   """Parses an Example proto containing a training example of an image.
 
   The output of the build_image_data.py image preprocessing script is a dataset
@@ -236,9 +224,10 @@ def parse_record(raw_record, is_training, dtype):
     dtype: data type to use for images/features.
 
   Returns:
-    Tuple with processed image tensor and one-hot-encoded label tensor.
+    Tuple with processed image tensor in a channel-last format and
+    one-hot-encoded label tensor.
   """
-  image_buffer, label, bbox = _parse_example_proto(raw_record)
+  image_buffer, label, bbox = parse_example_proto(raw_record)
 
   image = preprocess_image(
       image_buffer=image_buffer,
@@ -256,23 +245,49 @@ def parse_record(raw_record, is_training, dtype):
   return image, label
 
 
+def get_parse_record_fn(use_keras_image_data_format=False):
+  """Get a function for parsing the records, accounting for image format.
+
+  This is useful by handling different types of Keras models. For instance,
+  the current resnet_model.resnet50 input format is always channel-last,
+  whereas the keras_applications mobilenet input format depends on
+  tf.keras.backend.image_data_format(). We should set
+  use_keras_image_data_format=False for the former and True for the latter.
+
+  Args:
+    use_keras_image_data_format: A boolean denoting whether data format is keras
+      backend image data format. If False, the image format is channel-last. If
+      True, the image format matches tf.keras.backend.image_data_format().
+
+  Returns:
+    Function to use for parsing the records.
+  """
+  def parse_record_fn(raw_record, is_training, dtype):
+    image, label = parse_record(raw_record, is_training, dtype)
+    if use_keras_image_data_format:
+      if tf.keras.backend.image_data_format() == 'channels_first':
+        image = tf.transpose(image, perm=[2, 0, 1])
+    return image, label
+  return parse_record_fn
+
+
 def input_fn(is_training,
              data_dir,
              batch_size,
-             num_epochs=1,
              dtype=tf.float32,
              datasets_num_private_threads=None,
              parse_record_fn=parse_record,
              input_context=None,
              drop_remainder=False,
-             tf_data_experimental_slack=False):
+             tf_data_experimental_slack=False,
+             training_dataset_cache=False,
+             filenames=None):
   """Input function which provides batches for train or eval.
 
   Args:
     is_training: A boolean denoting whether the input is for training.
     data_dir: The directory containing the input data.
     batch_size: The number of samples per batch.
-    num_epochs: The number of epochs to repeat the dataset.
     dtype: Data type to use for images/features
     datasets_num_private_threads: Number of private threads for tf.data.
     parse_record_fn: Function to use for parsing the records.
@@ -282,11 +297,16 @@ def input_fn(is_training,
       batches. If True, the batch dimension will be static.
     tf_data_experimental_slack: Whether to enable tf.data's
       `experimental_slack` option.
+    training_dataset_cache: Whether to cache the training dataset on workers.
+       Typically used to improve training performance when training data is in
+       remote storage and can fit into worker memory.
+    filenames: Optional field for providing the file names of the TFRecords.
 
   Returns:
     A dataset that can be used for iteration.
   """
-  filenames = get_filenames(is_training, data_dir)
+  if filenames is None:
+    filenames = get_filenames(is_training, data_dir)
   dataset = tf.data.Dataset.from_tensor_slices(filenames)
 
   if input_context:
@@ -309,13 +329,17 @@ def input_fn(is_training,
       cycle_length=10,
       num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
+  if is_training and training_dataset_cache:
+    # Improve training performance when training data is in remote storage and
+    # can fit into worker memory.
+    dataset = dataset.cache()
+
   return process_record_dataset(
       dataset=dataset,
       is_training=is_training,
       batch_size=batch_size,
       shuffle_buffer=_SHUFFLE_BUFFER,
       parse_record_fn=parse_record_fn,
-      num_epochs=num_epochs,
       dtype=dtype,
       datasets_num_private_threads=datasets_num_private_threads,
       drop_remainder=drop_remainder,
@@ -534,4 +558,4 @@ def preprocess_image(image_buffer, bbox, output_height, output_width,
 
   image.set_shape([output_height, output_width, num_channels])
 
-  return _mean_image_subtraction(image, _CHANNEL_MEANS, num_channels)
+  return _mean_image_subtraction(image, CHANNEL_MEANS, num_channels)

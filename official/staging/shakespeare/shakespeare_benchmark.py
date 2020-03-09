@@ -26,6 +26,7 @@ import tensorflow as tf  # pylint: disable=g-bad-import-order
 from official.staging.shakespeare import shakespeare_main
 from official.utils.flags import core as flags_core
 from official.utils.misc import keras_utils
+from official.utils.testing import benchmark_wrappers
 from official.utils.testing.perfzero_benchmark import PerfZeroBenchmark
 
 SHAKESPEARE_TRAIN_DATA = 'shakespeare/shakespeare.txt'
@@ -42,6 +43,7 @@ class ShakespeareBenchmarkBase(PerfZeroBenchmark):
         default_flags=default_flags,
         flag_methods=[shakespeare_main.define_flags])
 
+  @benchmark_wrappers.enable_runtime_flags
   def _run_and_report_benchmark(self,
                                 top_1_train_min=0.91,
                                 top_1_train_max=0.94,
@@ -75,9 +77,10 @@ class ShakespeareBenchmarkBase(PerfZeroBenchmark):
     for callback in stats['callbacks']:
       if isinstance(callback, keras_utils.TimeHistory):
         epoch_timings = callback.epoch_runtime_log
-        average_time = sum(epoch_timings[1:]) / len(epoch_timings[1:])
-        metrics.append({'name': 'avg_epoch_time',
-                        'value': average_time})
+        if len(epoch_timings) > 1:
+          average_time = sum(epoch_timings[1:]) / len(epoch_timings[1:])
+          metrics.append({'name': 'avg_epoch_time',
+                          'value': average_time})
 
       # First entry in timestamp_log is the start of step 1. The rest of the
       # entries are the end of each step recorded.
@@ -85,9 +88,10 @@ class ShakespeareBenchmarkBase(PerfZeroBenchmark):
       elapsed = time_log[-1].timestamp - time_log[warmup].timestamp
       num_examples = (
           total_batch_size * log_steps * (len(time_log) - warmup - 1))
-      examples_per_sec = num_examples / elapsed
-      metrics.append({'name': 'exp_per_second',
-                      'value': examples_per_sec})
+      if elapsed > 0:
+        examples_per_sec = num_examples / elapsed
+        metrics.append({'name': 'exp_per_second',
+                        'value': examples_per_sec})
 
     flags_str = flags_core.get_nondefault_flags_as_str()
     self.report_benchmark(iters=-1, wall_time=wall_time_sec,
@@ -170,19 +174,6 @@ class ShakespeareAccuracy(ShakespeareBenchmarkBase):
     FLAGS.model_dir = ''
     FLAGS.run_eagerly = True
     FLAGS.distribution_strategy = 'off'
-    self._run_and_report_benchmark()
-
-  def benchmark_1_gpu_no_ds_force_v2(self):
-    """Benchmark 1 gpu no ds with force_v2 in keras.compile."""
-    self._setup()
-    FLAGS.num_gpus = 1
-    FLAGS.training_data = self.train_data
-    FLAGS.batch_size = 64
-    FLAGS.train_epochs = 43
-    FLAGS.model_dir = ''
-    FLAGS.force_v2_in_keras_compile = True
-    FLAGS.distribution_strategy = 'off'
-
     self._run_and_report_benchmark()
 
   def benchmark_xla_1_gpu(self):
@@ -290,15 +281,6 @@ class ShakespeareKerasBenchmarkReal(ShakespeareBenchmarkBase):
     self._setup()
     FLAGS.num_gpus = 1
     FLAGS.batch_size = 64
-    FLAGS.distribution_strategy = 'off'
-    self._run_and_report_benchmark()
-
-  def benchmark_1_gpu_no_ds_force_v2(self):
-    """Benchmark 1 gpu no ds, and force v2."""
-    self._setup()
-    FLAGS.num_gpus = 1
-    FLAGS.batch_size = 64
-    FLAGS.force_v2_in_keras_compile = True
     FLAGS.distribution_strategy = 'off'
     self._run_and_report_benchmark()
 
