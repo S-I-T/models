@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='object_detection/protos/eval.proto',
   package='object_detection.protos',
   syntax='proto2',
-  serialized_pb=_b('\n\"object_detection/protos/eval.proto\x12\x17object_detection.protos\"\xb5\x06\n\nEvalConfig\x12\x15\n\nbatch_size\x18\x19 \x01(\r:\x01\x31\x12\x1e\n\x12num_visualizations\x18\x01 \x01(\r:\x02\x31\x30\x12\x1e\n\x0cnum_examples\x18\x02 \x01(\r:\x04\x35\x30\x30\x30\x42\x02\x18\x01\x12\x1f\n\x12\x65val_interval_secs\x18\x03 \x01(\r:\x03\x33\x30\x30\x12\x18\n\tmax_evals\x18\x04 \x01(\r:\x01\x30\x42\x02\x18\x01\x12\x19\n\nsave_graph\x18\x05 \x01(\x08:\x05\x66\x61lse\x12\"\n\x18visualization_export_dir\x18\x06 \x01(\t:\x00\x12\x15\n\x0b\x65val_master\x18\x07 \x01(\t:\x00\x12\x13\n\x0bmetrics_set\x18\x08 \x03(\t\x12\x15\n\x0b\x65xport_path\x18\t \x01(\t:\x00\x12!\n\x12ignore_groundtruth\x18\n \x01(\x08:\x05\x66\x61lse\x12\"\n\x13use_moving_averages\x18\x0b \x01(\x08:\x05\x66\x61lse\x12\"\n\x13\x65val_instance_masks\x18\x0c \x01(\x08:\x05\x66\x61lse\x12 \n\x13min_score_threshold\x18\r \x01(\x02:\x03\x30.5\x12&\n\x1amax_num_boxes_to_visualize\x18\x0e \x01(\x05:\x02\x32\x30\x12\x1a\n\x0bskip_scores\x18\x0f \x01(\x08:\x05\x66\x61lse\x12\x1a\n\x0bskip_labels\x18\x10 \x01(\x08:\x05\x66\x61lse\x12*\n\x1bvisualize_groundtruth_boxes\x18\x11 \x01(\x08:\x05\x66\x61lse\x12\x32\n#groundtruth_box_visualization_color\x18\x12 \x01(\t:\x05\x62lack\x12\x35\n&keep_image_id_for_visualization_export\x18\x13 \x01(\x08:\x05\x66\x61lse\x12$\n\x16retain_original_images\x18\x17 \x01(\x08:\x04true\x12+\n\x1cinclude_metrics_per_category\x18\x18 \x01(\x08:\x05\x66\x61lse\x12\x1d\n\x12recall_lower_bound\x18\x1a \x01(\x02:\x01\x30\x12\x1d\n\x12recall_upper_bound\x18\x1b \x01(\x02:\x01\x31')
+  serialized_pb=_b('\n\"object_detection/protos/eval.proto\x12\x17object_detection.protos\"\x8f\x07\n\nEvalConfig\x12\x15\n\nbatch_size\x18\x19 \x01(\r:\x01\x31\x12\x1e\n\x12num_visualizations\x18\x01 \x01(\r:\x02\x31\x30\x12\x1e\n\x0cnum_examples\x18\x02 \x01(\r:\x04\x35\x30\x30\x30\x42\x02\x18\x01\x12\x1f\n\x12\x65val_interval_secs\x18\x03 \x01(\r:\x03\x33\x30\x30\x12\x18\n\tmax_evals\x18\x04 \x01(\r:\x01\x30\x42\x02\x18\x01\x12\x19\n\nsave_graph\x18\x05 \x01(\x08:\x05\x66\x61lse\x12\"\n\x18visualization_export_dir\x18\x06 \x01(\t:\x00\x12\x15\n\x0b\x65val_master\x18\x07 \x01(\t:\x00\x12\x13\n\x0bmetrics_set\x18\x08 \x03(\t\x12\x15\n\x0b\x65xport_path\x18\t \x01(\t:\x00\x12!\n\x12ignore_groundtruth\x18\n \x01(\x08:\x05\x66\x61lse\x12\"\n\x13use_moving_averages\x18\x0b \x01(\x08:\x05\x66\x61lse\x12\"\n\x13\x65val_instance_masks\x18\x0c \x01(\x08:\x05\x66\x61lse\x12 \n\x13min_score_threshold\x18\r \x01(\x02:\x03\x30.5\x12&\n\x1amax_num_boxes_to_visualize\x18\x0e \x01(\x05:\x02\x32\x30\x12\x1a\n\x0bskip_scores\x18\x0f \x01(\x08:\x05\x66\x61lse\x12\x1a\n\x0bskip_labels\x18\x10 \x01(\x08:\x05\x66\x61lse\x12*\n\x1bvisualize_groundtruth_boxes\x18\x11 \x01(\x08:\x05\x66\x61lse\x12\x32\n#groundtruth_box_visualization_color\x18\x12 \x01(\t:\x05\x62lack\x12\x35\n&keep_image_id_for_visualization_export\x18\x13 \x01(\x08:\x05\x66\x61lse\x12$\n\x16retain_original_images\x18\x17 \x01(\x08:\x04true\x12+\n\x1cinclude_metrics_per_category\x18\x18 \x01(\x08:\x05\x66\x61lse\x12\x1d\n\x12recall_lower_bound\x18\x1a \x01(\x02:\x01\x30\x12\x1d\n\x12recall_upper_bound\x18\x1b \x01(\x02:\x01\x31\x12\x38\n)retain_original_image_additional_channels\x18\x1c \x01(\x08:\x05\x66\x61lse\x12\x1e\n\x0f\x66orce_no_resize\x18\x1d \x01(\x08:\x05\x66\x61lse')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -201,6 +201,20 @@ _EVALCONFIG = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='retain_original_image_additional_channels', full_name='object_detection.protos.EvalConfig.retain_original_image_additional_channels', index=24,
+      number=28, type=8, cpp_type=7, label=1,
+      has_default_value=True, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='force_no_resize', full_name='object_detection.protos.EvalConfig.force_no_resize', index=25,
+      number=29, type=8, cpp_type=7, label=1,
+      has_default_value=True, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -214,7 +228,7 @@ _EVALCONFIG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=64,
-  serialized_end=885,
+  serialized_end=975,
 )
 
 DESCRIPTOR.message_types_by_name['EvalConfig'] = _EVALCONFIG

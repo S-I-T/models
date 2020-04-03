@@ -84,6 +84,9 @@ tf.app.flags.DEFINE_integer(
 tf.app.flags.DEFINE_bool(
     'quantize', False, 'whether to use quantized graph or not.')
 
+tf.app.flags.DEFINE_bool('use_grayscale', False,
+                         'Whether to convert input images to grayscale.')
+
 tf.app.flags.DEFINE_integer('perc_validation', None,
     'Percentage of samples to reserve for validation in generic database. Defaults to 20.')
 

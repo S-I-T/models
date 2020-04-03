@@ -24,7 +24,7 @@ from object_detection.utils import dataset_util
 from object_detection.utils import label_map_util
 
 
-flags = tf.app.flags
+flags = tf.compat.v1.app.flags
 flags.DEFINE_string('data_dir', '', 'Root directory to raw PASCAL VOC style dataset.')
 flags.DEFINE_string('set', 'train', 'Convert training set, validation set or '
                     'merged set (train, val, trainval, test).')
@@ -155,7 +155,7 @@ def main(_):
   if FLAGS.set not in SETS:
     raise ValueError('set must be in : {} '.format(SETS))
   label_map_dict = label_map_util.get_label_map_dict(FLAGS.label_map_path)
-  data_dirs = FLAGS.data_dir.split(':')
+  data_dirs = FLAGS.data_dir.split(';')
   output_path = FLAGS.output_path
   n_shards = FLAGS.n_shards
   total_examples = []
@@ -187,4 +187,4 @@ def main(_):
     
 
 if __name__ == '__main__':
-  tf.app.run()
+  tf.compat.v1.app.run()

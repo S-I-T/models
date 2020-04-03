@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='object_detection/protos/calibration.proto',
   package='object_detection.protos',
   syntax='proto2',
-  serialized_pb=_b('\n)object_detection/protos/calibration.proto\x12\x17object_detection.protos\"\x81\x03\n\x11\x43\x61librationConfig\x12P\n\x16\x66unction_approximation\x18\x01 \x01(\x0b\x32..object_detection.protos.FunctionApproximationH\x00\x12\x62\n class_id_function_approximations\x18\x02 \x01(\x0b\x32\x36.object_detection.protos.ClassIdFunctionApproximationsH\x00\x12J\n\x13sigmoid_calibration\x18\x03 \x01(\x0b\x32+.object_detection.protos.SigmoidCalibrationH\x00\x12\\\n\x1d\x63lass_id_sigmoid_calibrations\x18\x04 \x01(\x0b\x32\x33.object_detection.protos.ClassIdSigmoidCalibrationsH\x00\x42\x0c\n\ncalibrator\"L\n\x15\x46unctionApproximation\x12\x33\n\tx_y_pairs\x18\x01 \x01(\x0b\x32 .object_detection.protos.XYPairs\"\xe9\x01\n\x1d\x43lassIdFunctionApproximations\x12l\n\x15\x63lass_id_xy_pairs_map\x18\x01 \x03(\x0b\x32M.object_detection.protos.ClassIdFunctionApproximations.ClassIdXyPairsMapEntry\x1aZ\n\x16\x43lassIdXyPairsMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12/\n\x05value\x18\x02 \x01(\x0b\x32 .object_detection.protos.XYPairs:\x02\x38\x01\"\\\n\x12SigmoidCalibration\x12\x46\n\x12sigmoid_parameters\x18\x01 \x01(\x0b\x32*.object_detection.protos.SigmoidParameters\"\x8b\x02\n\x1a\x43lassIdSigmoidCalibrations\x12}\n\x1f\x63lass_id_sigmoid_parameters_map\x18\x01 \x03(\x0b\x32T.object_detection.protos.ClassIdSigmoidCalibrations.ClassIdSigmoidParametersMapEntry\x1an\n ClassIdSigmoidParametersMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\x39\n\x05value\x18\x02 \x01(\x0b\x32*.object_detection.protos.SigmoidParameters:\x02\x38\x01\"\xab\x01\n\x07XYPairs\x12\x39\n\x08x_y_pair\x18\x01 \x03(\x0b\x32\'.object_detection.protos.XYPairs.XYPair\x12\x45\n\x12training_data_type\x18\x02 \x01(\x0e\x32).object_detection.protos.TrainingDataType\x1a\x1e\n\x06XYPair\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\"0\n\x11SigmoidParameters\x12\r\n\x01\x61\x18\x01 \x01(\x02:\x02-1\x12\x0c\n\x01\x62\x18\x02 \x01(\x02:\x01\x30*N\n\x10TrainingDataType\x12\x15\n\x11\x44\x41TA_TYPE_UNKNOWN\x10\x00\x12\x0f\n\x0b\x41LL_CLASSES\x10\x01\x12\x12\n\x0e\x43LASS_SPECIFIC\x10\x02')
+  serialized_pb=_b('\n)object_detection/protos/calibration.proto\x12\x17object_detection.protos\"\xe4\x03\n\x11\x43\x61librationConfig\x12P\n\x16\x66unction_approximation\x18\x01 \x01(\x0b\x32..object_detection.protos.FunctionApproximationH\x00\x12\x62\n class_id_function_approximations\x18\x02 \x01(\x0b\x32\x36.object_detection.protos.ClassIdFunctionApproximationsH\x00\x12J\n\x13sigmoid_calibration\x18\x03 \x01(\x0b\x32+.object_detection.protos.SigmoidCalibrationH\x00\x12\\\n\x1d\x63lass_id_sigmoid_calibrations\x18\x04 \x01(\x0b\x32\x33.object_detection.protos.ClassIdSigmoidCalibrationsH\x00\x12\x61\n\x1ftemperature_scaling_calibration\x18\x05 \x01(\x0b\x32\x36.object_detection.protos.TemperatureScalingCalibrationH\x00\x42\x0c\n\ncalibrator\"L\n\x15\x46unctionApproximation\x12\x33\n\tx_y_pairs\x18\x01 \x01(\x0b\x32 .object_detection.protos.XYPairs\"\xe9\x01\n\x1d\x43lassIdFunctionApproximations\x12l\n\x15\x63lass_id_xy_pairs_map\x18\x01 \x03(\x0b\x32M.object_detection.protos.ClassIdFunctionApproximations.ClassIdXyPairsMapEntry\x1aZ\n\x16\x43lassIdXyPairsMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12/\n\x05value\x18\x02 \x01(\x0b\x32 .object_detection.protos.XYPairs:\x02\x38\x01\"\\\n\x12SigmoidCalibration\x12\x46\n\x12sigmoid_parameters\x18\x01 \x01(\x0b\x32*.object_detection.protos.SigmoidParameters\"\x8b\x02\n\x1a\x43lassIdSigmoidCalibrations\x12}\n\x1f\x63lass_id_sigmoid_parameters_map\x18\x01 \x03(\x0b\x32T.object_detection.protos.ClassIdSigmoidCalibrations.ClassIdSigmoidParametersMapEntry\x1an\n ClassIdSigmoidParametersMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\x39\n\x05value\x18\x02 \x01(\x0b\x32*.object_detection.protos.SigmoidParameters:\x02\x38\x01\"/\n\x1dTemperatureScalingCalibration\x12\x0e\n\x06scaler\x18\x01 \x01(\x02\"\xab\x01\n\x07XYPairs\x12\x39\n\x08x_y_pair\x18\x01 \x03(\x0b\x32\'.object_detection.protos.XYPairs.XYPair\x12\x45\n\x12training_data_type\x18\x02 \x01(\x0e\x32).object_detection.protos.TrainingDataType\x1a\x1e\n\x06XYPair\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\"0\n\x11SigmoidParameters\x12\r\n\x01\x61\x18\x01 \x01(\x02:\x02-1\x12\x0c\n\x01\x62\x18\x02 \x01(\x02:\x01\x30*N\n\x10TrainingDataType\x12\x15\n\x11\x44\x41TA_TYPE_UNKNOWN\x10\x00\x12\x0f\n\x0b\x41LL_CLASSES\x10\x01\x12\x12\n\x0e\x43LASS_SPECIFIC\x10\x02')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -45,8 +45,8 @@ _TRAININGDATATYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1360,
-  serialized_end=1438,
+  serialized_start=1508,
+  serialized_end=1586,
 )
 _sym_db.RegisterEnumDescriptor(_TRAININGDATATYPE)
 
@@ -92,6 +92,13 @@ _CALIBRATIONCONFIG = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='temperature_scaling_calibration', full_name='object_detection.protos.CalibrationConfig.temperature_scaling_calibration', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -108,7 +115,7 @@ _CALIBRATIONCONFIG = _descriptor.Descriptor(
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=71,
-  serialized_end=456,
+  serialized_end=555,
 )
 
 
@@ -138,8 +145,8 @@ _FUNCTIONAPPROXIMATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=458,
-  serialized_end=534,
+  serialized_start=557,
+  serialized_end=633,
 )
 
 
@@ -176,8 +183,8 @@ _CLASSIDFUNCTIONAPPROXIMATIONS_CLASSIDXYPAIRSMAPENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=680,
-  serialized_end=770,
+  serialized_start=779,
+  serialized_end=869,
 )
 
 _CLASSIDFUNCTIONAPPROXIMATIONS = _descriptor.Descriptor(
@@ -206,8 +213,8 @@ _CLASSIDFUNCTIONAPPROXIMATIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=537,
-  serialized_end=770,
+  serialized_start=636,
+  serialized_end=869,
 )
 
 
@@ -237,8 +244,8 @@ _SIGMOIDCALIBRATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=772,
-  serialized_end=864,
+  serialized_start=871,
+  serialized_end=963,
 )
 
 
@@ -275,8 +282,8 @@ _CLASSIDSIGMOIDCALIBRATIONS_CLASSIDSIGMOIDPARAMETERSMAPENTRY = _descriptor.Descr
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1024,
-  serialized_end=1134,
+  serialized_start=1123,
+  serialized_end=1233,
 )
 
 _CLASSIDSIGMOIDCALIBRATIONS = _descriptor.Descriptor(
@@ -305,8 +312,39 @@ _CLASSIDSIGMOIDCALIBRATIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=867,
-  serialized_end=1134,
+  serialized_start=966,
+  serialized_end=1233,
+)
+
+
+_TEMPERATURESCALINGCALIBRATION = _descriptor.Descriptor(
+  name='TemperatureScalingCalibration',
+  full_name='object_detection.protos.TemperatureScalingCalibration',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='scaler', full_name='object_detection.protos.TemperatureScalingCalibration.scaler', index=0,
+      number=1, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1235,
+  serialized_end=1282,
 )
 
 
@@ -343,8 +381,8 @@ _XYPAIRS_XYPAIR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1278,
-  serialized_end=1308,
+  serialized_start=1426,
+  serialized_end=1456,
 )
 
 _XYPAIRS = _descriptor.Descriptor(
@@ -380,8 +418,8 @@ _XYPAIRS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1137,
-  serialized_end=1308,
+  serialized_start=1285,
+  serialized_end=1456,
 )
 
 
@@ -418,14 +456,15 @@ _SIGMOIDPARAMETERS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1310,
-  serialized_end=1358,
+  serialized_start=1458,
+  serialized_end=1506,
 )
 
 _CALIBRATIONCONFIG.fields_by_name['function_approximation'].message_type = _FUNCTIONAPPROXIMATION
 _CALIBRATIONCONFIG.fields_by_name['class_id_function_approximations'].message_type = _CLASSIDFUNCTIONAPPROXIMATIONS
 _CALIBRATIONCONFIG.fields_by_name['sigmoid_calibration'].message_type = _SIGMOIDCALIBRATION
 _CALIBRATIONCONFIG.fields_by_name['class_id_sigmoid_calibrations'].message_type = _CLASSIDSIGMOIDCALIBRATIONS
+_CALIBRATIONCONFIG.fields_by_name['temperature_scaling_calibration'].message_type = _TEMPERATURESCALINGCALIBRATION
 _CALIBRATIONCONFIG.oneofs_by_name['calibrator'].fields.append(
   _CALIBRATIONCONFIG.fields_by_name['function_approximation'])
 _CALIBRATIONCONFIG.fields_by_name['function_approximation'].containing_oneof = _CALIBRATIONCONFIG.oneofs_by_name['calibrator']
@@ -438,6 +477,9 @@ _CALIBRATIONCONFIG.fields_by_name['sigmoid_calibration'].containing_oneof = _CAL
 _CALIBRATIONCONFIG.oneofs_by_name['calibrator'].fields.append(
   _CALIBRATIONCONFIG.fields_by_name['class_id_sigmoid_calibrations'])
 _CALIBRATIONCONFIG.fields_by_name['class_id_sigmoid_calibrations'].containing_oneof = _CALIBRATIONCONFIG.oneofs_by_name['calibrator']
+_CALIBRATIONCONFIG.oneofs_by_name['calibrator'].fields.append(
+  _CALIBRATIONCONFIG.fields_by_name['temperature_scaling_calibration'])
+_CALIBRATIONCONFIG.fields_by_name['temperature_scaling_calibration'].containing_oneof = _CALIBRATIONCONFIG.oneofs_by_name['calibrator']
 _FUNCTIONAPPROXIMATION.fields_by_name['x_y_pairs'].message_type = _XYPAIRS
 _CLASSIDFUNCTIONAPPROXIMATIONS_CLASSIDXYPAIRSMAPENTRY.fields_by_name['value'].message_type = _XYPAIRS
 _CLASSIDFUNCTIONAPPROXIMATIONS_CLASSIDXYPAIRSMAPENTRY.containing_type = _CLASSIDFUNCTIONAPPROXIMATIONS
@@ -454,6 +496,7 @@ DESCRIPTOR.message_types_by_name['FunctionApproximation'] = _FUNCTIONAPPROXIMATI
 DESCRIPTOR.message_types_by_name['ClassIdFunctionApproximations'] = _CLASSIDFUNCTIONAPPROXIMATIONS
 DESCRIPTOR.message_types_by_name['SigmoidCalibration'] = _SIGMOIDCALIBRATION
 DESCRIPTOR.message_types_by_name['ClassIdSigmoidCalibrations'] = _CLASSIDSIGMOIDCALIBRATIONS
+DESCRIPTOR.message_types_by_name['TemperatureScalingCalibration'] = _TEMPERATURESCALINGCALIBRATION
 DESCRIPTOR.message_types_by_name['XYPairs'] = _XYPAIRS
 DESCRIPTOR.message_types_by_name['SigmoidParameters'] = _SIGMOIDPARAMETERS
 DESCRIPTOR.enum_types_by_name['TrainingDataType'] = _TRAININGDATATYPE
@@ -508,6 +551,13 @@ ClassIdSigmoidCalibrations = _reflection.GeneratedProtocolMessageType('ClassIdSi
   ))
 _sym_db.RegisterMessage(ClassIdSigmoidCalibrations)
 _sym_db.RegisterMessage(ClassIdSigmoidCalibrations.ClassIdSigmoidParametersMapEntry)
+
+TemperatureScalingCalibration = _reflection.GeneratedProtocolMessageType('TemperatureScalingCalibration', (_message.Message,), dict(
+  DESCRIPTOR = _TEMPERATURESCALINGCALIBRATION,
+  __module__ = 'object_detection.protos.calibration_pb2'
+  # @@protoc_insertion_point(class_scope:object_detection.protos.TemperatureScalingCalibration)
+  ))
+_sym_db.RegisterMessage(TemperatureScalingCalibration)
 
 XYPairs = _reflection.GeneratedProtocolMessageType('XYPairs', (_message.Message,), dict(
 
